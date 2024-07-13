@@ -1,6 +1,6 @@
 # Swoole Installer
 
-常用的操作系统下 一行命令给PHP安装上 swoole 扩展
+一行命令给PHP安装上 swoole 扩展
 
 ## 用法
 
