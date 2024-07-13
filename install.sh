@@ -70,6 +70,7 @@ install_dependencies() {
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
     'rocky' | 'almalinux')
+      ym update -y
       yum install -y c-ares-devel libcurl-devel pcre-devel postgresql-devel unixODBC brotli-devel sqlite-devel
 
       ;;
@@ -77,7 +78,7 @@ install_dependencies() {
       export DEBIAN_FRONTEND=noninteractive
       export TZ="Etc/UTC"
       ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
-
+      apt update -y
       apt install -y git curl wget ca-certificates
       apt install -y xz-utils autoconf automake clang-tools clang lld libtool cmake bison re2c gettext coreutils lzip zip unzip
       apt install -y pkg-config bzip2 flex p7zip
@@ -91,6 +92,7 @@ install_dependencies() {
 
       ;;
     'alpine')
+      apk update
       apk add autoconf automake make libtool cmake bison re2c gcc g++
       apk add curl-dev c-ares-dev postgresql-dev sqlite-dev unixodbc-dev liburing-dev linux-headers
 
