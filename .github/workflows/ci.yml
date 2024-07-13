@@ -16,8 +16,7 @@ jobs:
           # - alpine:3.18
     steps:
       - uses: actions/checkout@v3
-      - name: check
-        run:
+      - name: test
         uses: addnab/docker-run-action@v3
         with:
           image: ${{ matrix.container_image }}
