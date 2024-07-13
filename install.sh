@@ -197,3 +197,7 @@ php -v
 php --ini
 php --ini | grep  ".ini files"
 php --ri swoole
+
+
+
+function

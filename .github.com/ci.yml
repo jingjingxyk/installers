@@ -1,0 +1,26 @@
+name: swoole-install CI
+
+on: [ push, pull_request ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        container_image:
+          - ubuntu:20.04
+          - ubuntu:24.10
+          - debian:11
+          - debian:12
+          # - alpine:3.18
+    steps:
+      - uses: actions/checkout@v3
+      - name: check
+        run:
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ matrix.container_image }}
+          options: -v ${{ github.workspace }}:/work -w /work
+          run: |
+            bash install.sh
