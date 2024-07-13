@@ -63,7 +63,7 @@ install_dependencies() {
     export HOMEBREW_NO_AUTO_UPDATE=1
     export HOMEBREW_INSTALL_FROM_API=1
     brew install wget curl libtool automake re2c llvm flex bison
-    brew intall libtool gettext coreutils pkg-config cmake
+    brew install libtool gettext coreutils pkg-config cmake
     brew install c-ares libpq unixodbc brotli curl
     ;;
   Linux)
@@ -121,6 +121,7 @@ php_install() {
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
     'rocky' | 'almalinux')
+      yum update -y
       yum install -y php-cli php-pear php-devel php-curl php-intl
       yum install -y php-mbstring php-tokenizer php-xml
       ;;
@@ -128,13 +129,13 @@ php_install() {
       export DEBIAN_FRONTEND=noninteractive
       export TZ="Etc/UTC"
       ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
-
+      apt update -y
       apt install -y php-cli php-pear php-dev php-curl php-intl
       apt install -y php-mbstring php-tokenizer php-xml
       apt install -y php-mysqlnd php-pgsql php-sqlite3 php-redis php-mongodb
       ;;
     'alpine')
-
+      apk update
       apk add php82-cli php82-dev
       apk add php82-iconv php82-mbstring php82-phar php82-openssl
       apk add php82-posix php82-tokenizer php82-intl
