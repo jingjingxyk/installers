@@ -22,7 +22,8 @@ ENABLE_TEST=0
 VERSION_LATEST=0
 SWOOLE_VERSION=''
 PHPY_VERSION=''
-INSTALL_PHP=0
+INSTALL_PHP=0       # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
+FORCE_INSTALL_PHP=0 # 0 未设置、3 要求安装PHP
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -46,7 +47,7 @@ while [ $# -gt 0 ]; do
     ;;
   --install-php)
     if [ "$2" == "1" ]; then
-      INSTALL_PHP=1
+      FORCE_INSTALL_PHP=3
     fi
     ;;
   --*)
@@ -56,7 +57,27 @@ while [ $# -gt 0 ]; do
   shift $(($# > 0 ? 1 : 0))
 done
 
-install_dependencies() {
+check_environment() {
+  PHP=$(which php)
+  PHPIZE=$(which phpize)
+  PHP_CONFIG=$(which php-config)
+
+  if test -x "${PHP}" -a -x "${PHPIZE}" -a -x "${PHP_CONFIG}"; then
+    ${PHP} -v
+    ${PHPIZE} --help
+    ${PHP_CONFIG} --help
+    INSTALL_PHP=1
+  else
+    INSTALL_PHP=2
+    echo 'no found PHP IN $PATH '
+    if test ${FORCE_INSTALL_PHP} -ne 3; then
+      # 未发现 php ，也不需要自动安装 PHP
+      exit 0
+    fi
+  fi
+}
+
+install_swoole_dependencies() {
   case "$OS" in
   Darwin | darwin)
     export HOMEBREW_NO_ANALYTICS=1
@@ -64,7 +85,7 @@ install_dependencies() {
     export HOMEBREW_INSTALL_FROM_API=1
     brew install wget curl libtool automake re2c llvm flex bison
     brew install libtool gettext coreutils pkg-config cmake
-    brew install c-ares libpq unixodbc brotli curl
+    brew install c-ares libpq unixodbc brotli curl pcre2
     ;;
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
@@ -93,7 +114,8 @@ install_dependencies() {
       ;;
     'alpine')
       apk update
-      apk add autoconf automake make libtool cmake bison re2c gcc g++
+      apk add autoconf automake make libtool cmake bison re2c gcc g++ git curl wget pkgconf ca-certificates
+      apk add clang-dev clang lld alpine-sdk xz autoconf automake tar gzip zip unzip bzip2
       apk add curl-dev c-ares-dev postgresql-dev sqlite-dev unixodbc-dev liburing-dev linux-headers
 
       ;;
@@ -163,34 +185,15 @@ php_install() {
     ;;
   esac
 
+  which php
+  which phpize
+  which php-config
+  php-config --help
 }
 
-check_environment() {
-  PHP=$(which php)
-  PHPIZE=$(which phpize)
-  PHP_CONFIG=$(which php-config)
+install_swoole() {
 
-  if test -x "${PHP}" -a -x "${PHPIZE}" -a -x "${PHP_CONFIG}"; then
-    ${PHP} -v
-    ${PHPIZE} --help
-    ${PHP_CONFIG} --help
-  else
-    echo 'no found PHP IN $PATH '
-    if [ ${INSTALL_PHP} -eq 1 ]; then
-      echo 'installing PHP'
-      php_install
-    else
-      exit 1
-    fi
-  fi
-
-}
-
-do_install() {
-
-  check_environment
-
-  install_dependencies
+  install_swoole_dependencies
 
   mkdir -p /tmp/build
   cd /tmp/build/
@@ -231,6 +234,11 @@ do_install() {
       ;;
     arm64)
       export PKG_CONFIG_PATH=/opt/homebrew/opt/libpq/lib/pkgconfig/:/opt/homebrew/opt/unixodbc/lib/pkgconfig/
+      # /opt/homebrew/opt/pcre2/lib/pkgconfig
+      # export PATH=/opt/homebrew/opt/pcre2/bin/:$PATH
+      php-config --prefix
+      ln -s /opt/homebrew/opt/pcre2/include/pcre2.h $(php-config --prefix)/include/php/ext/pcre/pcre2.h
+
       SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/opt/homebrew/opt/unixodbc/"
       ;;
     esac
@@ -251,11 +259,13 @@ do_install() {
 
   esac
 
-  cd swoole-src
+  cd /tmp/build/swoole-src
 
   test -f ext-src/.libs/php_swoole.o && make clean
 
   phpize
+
+  ./configure --help
 
   ./configure \
     ${SWOOLE_DEBUG_OPTIONS} \
@@ -326,5 +336,16 @@ EOF
   php --ri swoole
 }
 
-# 安装 swoole 入口
-do_install
+install() {
+  check_environment
+  if test ${INSTALL_PHP} -eq 2 -a ${FORCE_INSTALL_PHP} -eq 3; then
+    # 系统未安装PHP ，指定要求安装PHP
+    php_install
+  fi
+
+  install_swoole
+
+}
+
+# 安装 入口
+install

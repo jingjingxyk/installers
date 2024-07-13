@@ -3,7 +3,7 @@ name: swoole-install CI
 on: [ push, pull_request ]
 
 jobs:
-  test:
+  linux:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: 1
@@ -14,7 +14,8 @@ jobs:
           - ubuntu:24.10
           # - debian:11
           - debian:12
-          # - alpine:3.18
+          - alpine:3.18
+
     steps:
       - uses: actions/checkout@v3
       - name: test
@@ -23,4 +24,24 @@ jobs:
           image: ${{ matrix.container_image }}
           options: -v ${{ github.workspace }}:/work -w /work
           run: |
+            OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
+            [ "${OS_RELEASE}" == 'alpine' ] && apk update && apk add bash
+            [ "${OS_RELEASE}" == 'ubuntu' ] && sed -i "s@security.ubuntu.com@azure.archive.ubuntu.com@g" /etc/apt/sources.list
+            [ "${OS_RELEASE}" == 'ubuntu' ] && sed -i "s@archive.ubuntu.com@azure.archive.ubuntu.com@g" /etc/apt/sources.list
+
             bash install.sh --install-php 1
+
+  macos:
+    runs-on: ${{  matrix.macos_version }}
+    timeout-minutes: 5
+    if: 1
+    strategy:
+      matrix:
+        macos_version:
+          - macos-13
+          - macos-14
+    steps:
+      - uses: actions/checkout@v3
+      - name: test
+        run: |
+          bash install.sh --install-php 1
