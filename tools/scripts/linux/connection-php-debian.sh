@@ -8,4 +8,4 @@ __DIR__=$(
 
 cd ${__DIR__}
 
-docker exec -it php-debian-dev sh
+docker exec -it php-debian-dev bash

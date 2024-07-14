@@ -415,7 +415,6 @@ EOF
 }
 
 install() {
-  install_swoole_dependencies
   check_environment
   if test ${INSTALL_PHP} -eq 2 -a ${FORCE_INSTALL_PHP} -eq 3; then
     # 系统未安装PHP ，要求安装PHP
@@ -447,6 +446,8 @@ install() {
     # shellcheck disable=SC2046
     if test -f /.dockerenv -a -x $(which docker-php-source) -a -x $(which docker-php-ext-configure) -a -x $(which docker-php-ext-enable); then
       # php 容器中 启用被 swoole 依赖的扩展
+      # 准备编译环境
+      install_swoole_dependencies
       docker-php-source extract
 
       test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && docker-php-ext-configure openssl && docker-php-ext-install openssl && docker-php-ext-enable openssl
