@@ -107,7 +107,7 @@ install_swoole_dependencies() {
       apt update -y
       apt install -y git curl wget ca-certificates
       apt install -y xz-utils autoconf automake libtool cmake bison re2c gettext coreutils lzip zip unzip
-      apt install -y pkg-config bzip2 flex p7zip
+      apt install -y pkg-config bzip2 flex p7zip libssl-dev
 
       apt install -y gcc g++ libtool-bin autopoint
       apt install -y linux-headers-generic
@@ -212,8 +212,6 @@ install_php() {
 
 install_swoole() {
 
-  install_swoole_dependencies
-
   local SWOOLE_OPTIONS=''
 
   # shellcheck disable=SC2155
@@ -281,9 +279,10 @@ install_swoole() {
     SWOOLE_DEBUG_OPTIONS=' --enable-debug --enable-debug-log --enable-trace-log '
   fi
 
-  # shellcheck disable=SC2046
-  if [ $(php -r "echo PHP_ZTS;") -eq 1 ]; then
-    SWOOLE_THREAD_OPTION="--enable-swoole-thread"
+  # shellcheck disable=SC2155
+  local PHP_ENABLE_ZTS=$(php -r "echo PHP_ZTS;")
+  if [ "${PHP_ENABLE_ZTS}" == '1' ]; then
+    SWOOLE_THREAD_OPTION="--enable-swoole-thread "
   fi
 
   case "$OS" in
@@ -313,7 +312,12 @@ install_swoole() {
       SWOOLE_ODBC_OPTIONS=""                                # 缺少 unixODBC-devel
       ;;
     'debian' | 'ubuntu' | 'kali') # 'raspbian' | 'deeping'| 'uos' | 'kylin'
-      SWOOLE_IO_URING=' --enable-iouring '
+      if test -f /.dockerenv -a -x $(which docker-php-source) -a -x $(which docker-php-ext-enable); then
+        SWOOLE_IO_URING=' '
+      else
+        SWOOLE_IO_URING=' --enable-iouring '
+      fi
+
       SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
       ;;
     'arch')
@@ -395,7 +399,14 @@ install_swoole() {
       SUDO='sudo'
     fi
 
-    ${SUDO} tee ${PHP_INI_SCAN_DIR}/90-swoole.ini <<EOF
+    SWOOLE_INIT_FILE=${PHP_INI_SCAN_DIR}/90-swoole.ini
+    # shellcheck disable=SC2046
+    # 解决 php official 容器中 扩展加载顺序问题
+    if test -f /.dockerenv -a -x $(which docker-php-source) -a -x $(which docker-php-ext-enable); then
+      test -f ${SWOOLE_INIT_FILE} && rm -f ${SWOOLE_INIT_FILE}
+      SWOOLE_INIT_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-swoole-90.ini
+    fi
+    ${SUDO} tee ${SWOOLE_INIT_FILE} <<EOF
 extension=swoole.so
 swoole.use_shortname=On
 EOF
@@ -424,6 +435,50 @@ install() {
     fi
   fi
 
+  if test ${INSTALL_PHP} -eq 1; then
+    # 系统已经安装了PHP, 不再执行安装 PHP ，启用被swoole依赖的扩展
+    local EXTENSION_OPENSSL_EXISTS=0
+    local EXTENSION_CURL_EXISTS=0
+    local EXTENSION_SOCKETS_EXISTS=0
+    local EXTENSION_MYSQLND_EXISTS=0
+    local EXTENSION_PDO_EXISTS=0
+
+    php --ri openssl >/dev/null && EXTENSION_OPENSSL_EXISTS=1
+    php --ri curl >/dev/null && EXTENSION_CURL_EXISTS=1
+    php --ri sockets >/dev/null && EXTENSION_SOCKETS_EXISTS=1
+    php --ri mysqlnd >/dev/null && EXTENSION_MYSQLND_EXISTS=1
+    php --ri pdo >/dev/null && EXTENSION_PDO_EXISTS=1
+
+    # shellcheck disable=SC2046
+    if test -f /.dockerenv -a -x $(which docker-php-source) -a -x $(which docker-php-ext-configure) -a -x $(which docker-php-ext-enable); then
+      # php 容器中 启用被 swoole 依赖的扩展
+      # 准备编译环境
+      install_swoole_dependencies
+      docker-php-source extract
+
+      test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && docker-php-ext-configure openssl && docker-php-ext-install openssl && docker-php-ext-enable openssl
+      test ${EXTENSION_CURL_EXISTS} -eq 0 && docker-php-ext-configure curl && docker-php-ext-install curl && docker-php-ext-enable curl
+      test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && docker-php-ext-configure sockets && docker-php-ext-install sockets && docker-php-ext-enable sockets
+      test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && docker-php-ext-configure mysqlnd && docker-php-ext-install mysqlnd && docker-php-ext-enable mysqlnd
+      test ${EXTENSION_PDO_EXISTS} -eq 0 && docker-php-ext-configure pdo && docker-php-ext-install pdo && docker-php-ext-enable pdo
+
+      docker-php-source delete
+    else
+      local MESSAGES=' please manual enable extension : '
+      local SUM=0
+      test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  openssl" && ((SUM++))
+      test ${EXTENSION_CURL_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  curl" && ((SUM++))
+      test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && MESSAGES="${MESSAGES} sockets" && ((SUM++))
+      test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  mysqlnd " && ((SUM++))
+      test ${EXTENSION_PDO_EXISTS} -eq 0 && MESSAGES="${MESSAGES} pdo  " && ((SUM++))
+
+      if test $SUM -gt 0; then
+        echo $MESSAGES
+        exit 0
+      fi
+    fi
+  fi
+  install_swoole_dependencies
   install_swoole
 
 }
