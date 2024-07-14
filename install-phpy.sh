@@ -23,9 +23,11 @@ VERSION_LATEST=0    # 保持源码最新，每次执行都需要下载源码
 X_PHPY_VERSION=''   # 指定  phpy 版本
 PHPY_VERSION='main' # 默认 phpy 版本
 PHP_VERSION=''      # PHP 版本
+PHP_CONFIG=''       # php-config 所在位置
 PYTHON_DIR=''       # python 所在目录
 PYTHON_VERSION=''   # python 版本
 PYTHON_CONFIG=''    # python-config 文件位置
+
 while [ $# -gt 0 ]; do
   case "$1" in
   --mirror)
@@ -95,10 +97,10 @@ install_phpy() {
   if test -n "${X_PHPY_VERSION}" -a -d phpy/; then
     if test -f phpy/x-phpy-version; then
       if test "$(cat phpy/x-phpy-version)" != "${X_PHPY_VERSION}"; then
-        test -d swoole-src && rm -rf swoole-src
+        test -d phpy && rm -rf phpy
       fi
     else
-      test -d swoole-src && rm -rf swoole-src
+      test -d phpy && rm -rf phpy
     fi
   fi
 
@@ -113,6 +115,10 @@ install_phpy() {
     test -d phpy || git clone -b $PHPY_VERSION --single-branch --depth=1 https://gitee.com/swoole/phpy.git
     ;;
   esac
+  if [ $? -ne 0 ]; then
+    echo $?
+    exit 3
+  fi
   echo $PHPY_VERSION >phpy/x-phpy-version
 
   case "$OS" in
@@ -134,21 +140,21 @@ install_phpy() {
   ./configure --help
 
   ./configure \
-    --with-php-config="${PHP-CONFIG}" \
+    --with-php-config="${PHP_CONFIG}" \
     --with-python-dir="${PYTHON_DIR}" \
     --with-python-config="${PYTHON_CONFIG}" \
     --with-python-version="${PYTHON_VERSION}"
 
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   make -j ${CPU_LOGICAL_PROCESSORS}
 
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   if test $ENABLE_TEST -eq 1; then
@@ -161,7 +167,7 @@ install_phpy() {
   make install
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   # 创建 swoole.ini
@@ -169,7 +175,7 @@ install_phpy() {
   PHP_INI_SCAN_DIR=$(php --ini | grep "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   if [ -n "${PHP_INI_SCAN_DIR}" ] && [ -d "${PHP_INI_SCAN_DIR}" ]; then
@@ -204,4 +210,4 @@ install() {
 # 安装 入口
 install
 
-#  --with-python-dir=/opt/anaconda3  -with-python-config=/opt/anaconda3/bin/python3-config --with-python-version=3.12
+##  --with-python-dir=/opt/anaconda3  -with-python-config=/opt/anaconda3/bin/python3-config --with-python-version=3.12
