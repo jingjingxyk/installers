@@ -34,7 +34,6 @@ jobs:
       - name: show info
         run:
           php -v
-          php-config --help
           php -m
           php --ri swoole
 
@@ -55,6 +54,5 @@ jobs:
       - name: show info
         run:
           php -v
-          php-config --help
           php -m
           php --ri swoole
