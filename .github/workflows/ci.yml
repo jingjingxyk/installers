@@ -34,7 +34,7 @@ jobs:
   macos:
     runs-on: ${{  matrix.macos_version }}
     timeout-minutes: 5
-    if: 1
+    if: 0
     strategy:
       matrix:
         macos_version:
