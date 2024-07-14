@@ -280,8 +280,9 @@ install_swoole() {
   fi
 
   # shellcheck disable=SC2046
-  if [ $(php -r "echo PHP_ZTS;") -eq 1 ]; then
-    SWOOLE_THREAD_OPTION="--enable-swoole-thread"
+  local PHP_ZTS=$(php -r "echo PHP_ZTS;")
+  if [ "${PHP_ENABLE_ZTS}" == '1' ]; then
+    SWOOLE_THREAD_OPTION="--enable-swoole-thread "
   fi
 
   case "$OS" in
