@@ -24,7 +24,7 @@ X_SWOOLE_VERSION=''     # 指定 swoole 版本
 SWOOLE_VERSION='master' # 默认 swoole 版本
 INSTALL_PHP=0           # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
 FORCE_INSTALL_PHP=0     # 0 未设置、3 要求安装PHP
-PHP_CONFIG='' # php-config 位置
+PHP_CONFIG=''           # php-config 位置
 
 while [ $# -gt 0 ]; do
   case "$1" in
