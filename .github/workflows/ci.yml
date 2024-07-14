@@ -3,7 +3,7 @@ name: swoole-install CI
 on: [ push, pull_request ]
 
 jobs:
-  linux:
+  linux-container:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: 1
