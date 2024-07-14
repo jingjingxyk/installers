@@ -205,7 +205,7 @@ install_swoole() {
     SWOOLE_VERSION="${X_SWOOLE_VERSION}"
   fi
 
-  if test $((PHP_VERSION)) -ge 80000 -a $((PHP_VERSION)) -ge 80100; then
+  if test $((PHP_VERSION)) -ge 80000 -a $((PHP_VERSION)) -lt 80100; then
     test -z "${X_SWOOLE_VERSION}" && SWOOLE_VERSION="v5.1.3"
     test ${VERSION_LATEST} -eq 1 && SWOOLE_VERSION="5.1.x"
   fi
