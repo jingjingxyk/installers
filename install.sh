@@ -310,7 +310,10 @@ install_swoole() {
       SWOOLE_IO_URING=' --enable-iouring '
       SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
       ;;
-    'arch') ;;
+    'arch')
+      SWOOLE_IO_URING=' --enable-iouring '
+      SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
+      ;;
     'alpine') # 构建 iouring 报错
       ;;
 
