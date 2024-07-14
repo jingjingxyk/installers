@@ -312,7 +312,7 @@ install_swoole() {
       SWOOLE_ODBC_OPTIONS=""                                # 缺少 unixODBC-devel
       ;;
     'debian' | 'ubuntu' | 'kali') # 'raspbian' | 'deeping'| 'uos' | 'kylin'
-      if test -f /.dockerenv -a -x $(which docker-php-source) -a -x $(which docker-php-ext-enable); then
+      if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then
         SWOOLE_IO_URING=' '
       else
         SWOOLE_IO_URING=' --enable-iouring '
@@ -402,7 +402,7 @@ install_swoole() {
     SWOOLE_INIT_FILE=${PHP_INI_SCAN_DIR}/90-swoole.ini
     # shellcheck disable=SC2046
     # 解决 php official 容器中 扩展加载顺序问题
-    if test -f /.dockerenv -a -x $(which docker-php-source) -a -x $(which docker-php-ext-enable); then
+    if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then
       test -f ${SWOOLE_INIT_FILE} && rm -f ${SWOOLE_INIT_FILE}
       SWOOLE_INIT_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-swoole-90.ini
     fi
@@ -450,7 +450,7 @@ install() {
     php --ri pdo >/dev/null && EXTENSION_PDO_EXISTS=1
 
     # shellcheck disable=SC2046
-    if test -f /.dockerenv -a -x $(which docker-php-source) -a -x $(which docker-php-ext-configure) -a -x $(which docker-php-ext-enable); then
+    if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-configure)" -a -x "$(which docker-php-ext-enable)"; then
       # php 容器中 启用被 swoole 依赖的扩展
       # 准备编译环境
       install_swoole_dependencies
