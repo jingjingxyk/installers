@@ -92,7 +92,7 @@ install_swoole_dependencies() {
       { yum install -y curl ; } || { echo $? ; }
       { yum install -y curl-minimal ; } || { echo $? ; }
       yum install -y curl-minimal
-      yum install -y git wget curl-minimal curl ca-certificates
+      yum install -y git wget  ca-certificates
       yum install -y autoconf automake libtool cmake bison gettext zip unzip xz
       yum install -y pkg-config bzip2 flex which
       yum install -y c-ares-devel libcurl-devel pcre-devel postgresql-devel unixODBC brotli-devel sqlite-devel openssl-devel
