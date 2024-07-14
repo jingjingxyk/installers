@@ -89,6 +89,8 @@ install_swoole_dependencies() {
     case "$OS_RELEASE" in
     'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora')
       yum update -y
+      yum install -y  curl
+      yum install -y  curl-minimal
       yum install -y git wget curl-minimal curl ca-certificates
       yum install -y autoconf automake libtool cmake bison gettext zip unzip xz
       yum install -y pkg-config bzip2 flex which
@@ -246,6 +248,11 @@ install_swoole() {
     test -d swoole-src || git clone -b $SWOOLE_VERSION --single-branch --depth=1 https://github.com/swoole/swoole-src.git
     ;;
   esac
+  if [ $? -ne 0 ]; then
+    echo $?
+    exit 0
+  fi
+
   echo $SWOOLE_VERSION >swoole-src/x-swoole-version
 
   SWOOLE_ODBC_OPTIONS=""
