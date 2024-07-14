@@ -6,20 +6,20 @@ __DIR__=$(
   pwd
 )
 __PROJECT__=$(
-  cd ${__DIR__}/../../
+  cd ${__DIR__}/../../../
   pwd
 )
 cd ${__DIR__}
 
 {
-  docker stop ubuntu-dev
+  docker stop debian-dev
   sleep 5
 } || {
   echo $?
 }
 cd ${__DIR__}
-IMAGE=ubuntu:22.04
-IMAGE=ubuntu:23.10
+
+IMAGE=debian:12
 
 MIRROR=''
 while [ $# -gt 0 ]; do
@@ -28,7 +28,7 @@ while [ $# -gt 0 ]; do
     MIRROR="$2"
     case "$MIRROR" in
       china | openatom)
-        IMAGE="hub.atomgit.com/library/ubuntu:23.10"
+        IMAGE="hub.atomgit.com/library/debian:12"
         ;;
     esac
     ;;
@@ -36,5 +36,6 @@ while [ $# -gt 0 ]; do
   shift $(($# > 0 ? 1 : 0))
 done
 
+
 cd ${__DIR__}
-docker run --rm --name ubuntu-dev -d -v ${__PROJECT__}:/work -w /work -e TZ='Etc/UTC' $IMAGE tail -f /dev/null
+docker run --rm --name debian-dev -d -v ${__PROJECT__}:/work -w /work $IMAGE tail -f /dev/null

@@ -87,12 +87,12 @@ install_swoole_dependencies() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux')
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora')
       yum update -y
-      yum install -y git wget curl-minimal ca-certificates
+      yum install -y git wget curl-minimal curl ca-certificates
       yum install -y autoconf automake libtool cmake bison gettext zip unzip xz
-      yum install -y pkg-config bzip2 flex
-      yum install -y c-ares-devel libcurl-devel pcre-devel postgresql-devel unixODBC brotli-devel sqlite-devel
+      yum install -y pkg-config bzip2 flex which
+      yum install -y c-ares-devel libcurl-devel pcre-devel postgresql-devel unixODBC brotli-devel sqlite-devel openssl-devel
 
       ;;
     'debian' | 'ubuntu')
@@ -142,11 +142,11 @@ install_php() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux')
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora')
       yum update -y
       yum install -y php-cli php-pear php-devel php-curl php-intl php-json
       yum install -y php-mbstring php-tokenizer php-xml
-      yum install -y  php-pdo php-mysqlnd
+      yum install -y php-pdo php-mysqlnd
       ;;
     'debian' | 'ubuntu')
       export DEBIAN_FRONTEND=noninteractive
@@ -203,11 +203,13 @@ install_swoole() {
   fi
 
   if test $((PHP_VERSION)) -ge 80000 -a $((PHP_VERSION)) -ge 80100; then
-    test -z "${X_SWOOLE_VERSION}" && SWOOLE_VERSION="5.1.x"
+    test -z "${X_SWOOLE_VERSION}" && SWOOLE_VERSION="v5.1.3"
+    test ${VERSION_LATEST} -eq 1 && SWOOLE_VERSION="5.1.x"
   fi
 
   if test $((PHP_VERSION)) -ge 70200 -a $((PHP_VERSION)) -lt 80000; then
-    test -z "${X_SWOOLE_VERSION}" && SWOOLE_VERSION="4.8.x"
+    test -z "${X_SWOOLE_VERSION}" && SWOOLE_VERSION="v4.8.13"
+    test ${VERSION_LATEST} -eq 1 && SWOOLE_VERSION="4.8.x"
     SWOOLE_OPTIONS=' --enable-swoole-json --enable-http2 '
   fi
 
@@ -222,6 +224,17 @@ install_swoole() {
   # shellcheck disable=SC2164
   cd /tmp/build/
 
+  # 指定swoole版本 和 已经存在的版本不一致
+  if test -n "${X_SWOOLE_VERSION}" -a -d swoole-src/; then
+    if test -f swoole-src/x-swoole-version; then
+      if test "$(cat swoole-src/x-swoole-version)" != "${X_SWOOLE_VERSION}"; then
+        test -d swoole-src && rm -rf swoole-src
+      fi
+    else
+      test -d swoole-src && rm -rf swoole-src
+    fi
+  fi
+
   # 保持源码最新
   test $VERSION_LATEST -eq 1 && test -d swoole-src && rm -rf swoole-src
 
@@ -233,8 +246,9 @@ install_swoole() {
     test -d swoole-src || git clone -b $SWOOLE_VERSION --single-branch --depth=1 https://github.com/swoole/swoole-src.git
     ;;
   esac
+  echo $SWOOLE_VERSION >swoole-src/x-swoole-version
 
-  SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
+  SWOOLE_ODBC_OPTIONS=""
   SWOOLE_IO_URING=''
   SWOOLE_DEBUG_OPTIONS=''
   SWOOLE_THREAD_OPTION=''
@@ -271,11 +285,12 @@ install_swoole() {
     CPU_LOGICAL_PROCESSORS=$(grep "processor" /proc/cpuinfo | sort -u | wc -l)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux') # | 'rhel' |  'centos' | 'fedora'  # 未测试
-      SWOOLE_ODBC_OPTIONS=""          # 缺少 unixODBC-devel
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora') # | 'rhel' |  'centos'  # 未测试
+      SWOOLE_ODBC_OPTIONS=""                                # 缺少 unixODBC-devel
       ;;
-    'debian' | 'ubuntu') # | 'alpine' # 构建报错
+    'debian' | 'ubuntu') # | 'alpine' # 构建 iouring 报错
       SWOOLE_IO_URING=' --enable-iouring '
+      SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
       ;;
     esac
     ;;
