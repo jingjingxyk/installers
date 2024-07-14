@@ -180,8 +180,9 @@ install_php() {
       ln -sf /usr/bin/php-config82 /usr/bin/php-config
 
       ;;
-    'arch') ;;
-
+    'arch')
+      pacman -Sy --noconfirm php php-sqlite
+      ;;
     esac
     ;;
   *)

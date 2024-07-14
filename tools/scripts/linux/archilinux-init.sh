@@ -38,7 +38,7 @@ china | ustc)
   ;;
 tuna) #
   test -f /etc/pacman.d/mirrorlist || cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.save
-  grep 'mirrors.ustc.edu.cn' /etc/pacman.d/mirrorlist
+  grep 'mirrors.tuna.tsinghua.edu.cn' /etc/pacman.d/mirrorlist
   result=$?
   if [ $result -ne 0 ] ; then
     sed -i.bak '1i Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch' /etc/pacman.d/mirrorlist
@@ -47,6 +47,10 @@ tuna) #
 
 esac
 
-pacman -Syyu
+pacman -Syyu --noconfirm
 
 pacman -Sy --noconfirm git curl wget openssl   xz zip unzip  ca-certificates
+
+
+# 搜索包
+pacman -Ss php
