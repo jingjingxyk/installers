@@ -311,7 +311,12 @@ install_swoole() {
       SWOOLE_ODBC_OPTIONS=""                                # 缺少 unixODBC-devel
       ;;
     'debian' | 'ubuntu' | 'kali') # 'raspbian' | 'deeping'| 'uos' | 'kylin'
-      SWOOLE_IO_URING=' --enable-iouring '
+      if test -f /.dockerenv -a -x $(which docker-php-source) -a -x $(which docker-php-ext-enable); then
+        SWOOLE_IO_URING=' '
+      else
+        SWOOLE_IO_URING=' --enable-iouring '
+      fi
+
       SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
       ;;
     'arch')
