@@ -30,6 +30,7 @@ jobs:
           run: |
             sh .github/workflows/init.sh
             bash install.sh --install-php 1
+            bash install-phpy.sh
 
   macos:
     runs-on: ${{  matrix.macos_version }}

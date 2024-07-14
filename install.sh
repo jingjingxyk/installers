@@ -208,6 +208,9 @@ install_php() {
 }
 
 install_swoole() {
+
+  install_swoole_dependencies
+
   local SWOOLE_OPTIONS=''
 
   # shellcheck disable=SC2155
@@ -232,8 +235,6 @@ install_swoole() {
     echo 'no support this php version'
     exit 0
   fi
-
-  install_swoole_dependencies
 
   mkdir -p /tmp/build
   # shellcheck disable=SC2164
@@ -334,7 +335,7 @@ install_swoole() {
   ./configure --help
 
   ./configure \
-    --with-php-config="${PHP-CONFIG}" \
+    --with-php-config="${PHP_CONFIG}" \
     ${SWOOLE_DEBUG_OPTIONS} \
     --enable-openssl \
     --enable-sockets \
