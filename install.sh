@@ -205,6 +205,9 @@ install_php() {
   which phpize
   which php-config
   php-config --help
+  PHP=$(which php)
+  PHPIZE=$(which phpize)
+  PHP_CONFIG=$(which php-config)
 }
 
 install_swoole() {
