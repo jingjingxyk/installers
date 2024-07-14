@@ -89,16 +89,16 @@ install_swoole_dependencies() {
     case "$OS_RELEASE" in
     'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora')
       yum update -y
-      { yum install -y curl ; } || { echo $? ; }
-      { yum install -y curl-minimal ; } || { echo $? ; }
+      { yum install -y curl; } || { echo $?; }
+      { yum install -y curl-minimal; } || { echo $?; }
       yum install -y curl-minimal
-      yum install -y git wget  ca-certificates
+      yum install -y git wget ca-certificates
       yum install -y autoconf automake libtool cmake bison gettext zip unzip xz
       yum install -y pkg-config bzip2 flex which
       yum install -y c-ares-devel libcurl-devel pcre-devel postgresql-devel unixODBC brotli-devel sqlite-devel openssl-devel
 
       ;;
-    'debian' | 'ubuntu')
+    'debian' | 'ubuntu' | 'kali')
       export DEBIAN_FRONTEND=noninteractive
       export TZ="Etc/UTC"
       ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
@@ -151,7 +151,7 @@ install_php() {
       yum install -y php-mbstring php-tokenizer php-xml
       yum install -y php-pdo php-mysqlnd
       ;;
-    'debian' | 'ubuntu')
+    'debian' | 'ubuntu' | 'kali')
       export DEBIAN_FRONTEND=noninteractive
       export TZ="Etc/UTC"
       ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
@@ -296,7 +296,7 @@ install_swoole() {
     'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora') # | 'rhel' |  'centos'  # 未测试
       SWOOLE_ODBC_OPTIONS=""                                # 缺少 unixODBC-devel
       ;;
-    'debian' | 'ubuntu') # | 'alpine' # 构建 iouring 报错
+    'debian' | 'ubuntu' | 'kali') # | 'alpine' # 构建 iouring 报错
       SWOOLE_IO_URING=' --enable-iouring '
       SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
       ;;
