@@ -87,15 +87,18 @@ install_swoole_dependencies() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora')
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'amzn')
       yum update -y
-      yum install -y git wget curl-minimal curl ca-certificates
+      { yum install -y curl; } || { echo $?; }
+      { yum install -y curl-minimal; } || { echo $?; }
+      yum install -y curl-minimal
+      yum install -y git wget ca-certificates
       yum install -y autoconf automake libtool cmake bison gettext zip unzip xz
       yum install -y pkg-config bzip2 flex which
       yum install -y c-ares-devel libcurl-devel pcre-devel postgresql-devel unixODBC brotli-devel sqlite-devel openssl-devel
 
       ;;
-    'debian' | 'ubuntu')
+    'debian' | 'ubuntu' | 'kali')
       export DEBIAN_FRONTEND=noninteractive
       export TZ="Etc/UTC"
       ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
@@ -115,10 +118,17 @@ install_swoole_dependencies() {
     'alpine')
       apk update
       apk add autoconf automake make libtool cmake bison re2c gcc g++ git curl wget pkgconf ca-certificates
-      apk add clang-dev clang lld alpine-sdk xz autoconf automake tar gzip zip unzip bzip2
+      apk add clang-dev clang lld alpine-sdk xz tar gzip zip unzip bzip2
       apk add curl-dev c-ares-dev postgresql-dev sqlite-dev unixodbc-dev liburing-dev linux-headers
 
       ;;
+    'arch')
+      pacman -Sy --noconfirm gcc autoconf automake make libtool cmake bison re2c gcc git curl
+      pacman -Sy --noconfirm xz automake tar gzip zip unzip bzip2 pkg-config
+      pacman -Sy --noconfirm curl postgresql-libs c-ares sqlite unixodbc liburing linux-headers
+
+      ;;
+
     esac
     ;;
   *)
@@ -142,13 +152,13 @@ install_php() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora')
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora') # |  'amzn' | 'ol' | 'openEuler' | 'rhel' | 'centos'  # 未测试
       yum update -y
       yum install -y php-cli php-pear php-devel php-curl php-intl php-json
       yum install -y php-mbstring php-tokenizer php-xml
       yum install -y php-pdo php-mysqlnd
       ;;
-    'debian' | 'ubuntu')
+    'debian' | 'ubuntu' | 'kali') # 'raspbian' | 'deeping'| 'uos' | 'kylin'
       export DEBIAN_FRONTEND=noninteractive
       export TZ="Etc/UTC"
       ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
@@ -174,6 +184,9 @@ install_php() {
       ln -sf /usr/bin/phpize82 /usr/bin/phpize
       ln -sf /usr/bin/php-config82 /usr/bin/php-config
 
+      ;;
+    'arch')
+      pacman -Sy --noconfirm php php-sqlite
       ;;
     esac
     ;;
@@ -202,7 +215,7 @@ install_swoole() {
     SWOOLE_VERSION="${X_SWOOLE_VERSION}"
   fi
 
-  if test $((PHP_VERSION)) -ge 80000 -a $((PHP_VERSION)) -ge 80100; then
+  if test $((PHP_VERSION)) -ge 80000 -a $((PHP_VERSION)) -lt 80100; then
     test -z "${X_SWOOLE_VERSION}" && SWOOLE_VERSION="v5.1.3"
     test ${VERSION_LATEST} -eq 1 && SWOOLE_VERSION="5.1.x"
   fi
@@ -246,6 +259,11 @@ install_swoole() {
     test -d swoole-src || git clone -b $SWOOLE_VERSION --single-branch --depth=1 https://github.com/swoole/swoole-src.git
     ;;
   esac
+  if [ $? -ne 0 ]; then
+    echo $?
+    exit 3
+  fi
+
   echo $SWOOLE_VERSION >swoole-src/x-swoole-version
 
   SWOOLE_ODBC_OPTIONS=""
@@ -285,13 +303,20 @@ install_swoole() {
     CPU_LOGICAL_PROCESSORS=$(grep "processor" /proc/cpuinfo | sort -u | wc -l)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora') # | 'rhel' |  'centos'  # 未测试
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora') # |  'amzn' | 'ol' | 'openEuler' | 'rhel' | 'centos'  # 未测试
       SWOOLE_ODBC_OPTIONS=""                                # 缺少 unixODBC-devel
       ;;
-    'debian' | 'ubuntu') # | 'alpine' # 构建 iouring 报错
+    'debian' | 'ubuntu' | 'kali') # 'raspbian' | 'deeping'| 'uos' | 'kylin'
       SWOOLE_IO_URING=' --enable-iouring '
       SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
       ;;
+    'arch')
+      SWOOLE_IO_URING=' --enable-iouring '
+      SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
+      ;;
+    'alpine') # 构建 iouring 报错
+      ;;
+
     esac
     ;;
   *) ;;
@@ -322,7 +347,7 @@ install_swoole() {
 
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   # --with-php-config=/usr/bin/php-config
@@ -333,7 +358,7 @@ install_swoole() {
 
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   if test $ENABLE_TEST -eq 1; then
@@ -346,7 +371,7 @@ install_swoole() {
   make install
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   # 创建 swoole.ini
@@ -354,7 +379,7 @@ install_swoole() {
   PHP_INI_SCAN_DIR=$(php --ini | grep "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   if [ -n "${PHP_INI_SCAN_DIR}" ] && [ -d "${PHP_INI_SCAN_DIR}" ]; then
@@ -372,14 +397,14 @@ EOF
 
   php -v
   php --ini
-  php --ini | grep ".ini files"
+  php --ini | grep "Scan for additional .ini files in:"
   php --ri swoole
 }
 
 install() {
   check_environment
   if test ${INSTALL_PHP} -eq 2 -a ${FORCE_INSTALL_PHP} -eq 3; then
-    # 系统未安装PHP ，按照要求安装 PHP
+    # 系统未安装PHP ，要求安装PHP
     install_php
     if test -x "$(which php)"; then
       echo 'INSTALL PHP SUCCESS '
@@ -387,7 +412,7 @@ install() {
     else
       echo 'no found PHP in $PATH'
       echo 'please reinstall PHP '
-      exit 0
+      exit 3
     fi
   fi
 
