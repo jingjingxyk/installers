@@ -400,8 +400,8 @@ EOF
 
   php -v
   php -m
-  php --ini
   php --ini | grep ".ini files"
+  php --ini
   php --ri swoole
 }
 
