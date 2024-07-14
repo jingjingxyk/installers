@@ -48,3 +48,5 @@ tuna) #
 esac
 
 pacman -Syyu
+
+pacman -Sy --noconfirm git curl wget openssl   xz zip unzip  ca-certificates
