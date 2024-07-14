@@ -49,7 +49,7 @@ jobs:
           - macos-14
     steps:
       - uses: actions/checkout@v3
-      - name: install
+      - name: install swoole
         run: |
           bash install.sh --install-php 1
       - name: show info
