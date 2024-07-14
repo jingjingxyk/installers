@@ -251,7 +251,7 @@ install_swoole() {
   esac
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   echo $SWOOLE_VERSION >swoole-src/x-swoole-version
@@ -330,7 +330,7 @@ install_swoole() {
 
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   # --with-php-config=/usr/bin/php-config
@@ -341,7 +341,7 @@ install_swoole() {
 
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   if test $ENABLE_TEST -eq 1; then
@@ -354,7 +354,7 @@ install_swoole() {
   make install
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   # 创建 swoole.ini
@@ -362,7 +362,7 @@ install_swoole() {
   PHP_INI_SCAN_DIR=$(php --ini | grep "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
   if [ $? -ne 0 ]; then
     echo $?
-    exit 0
+    exit 3
   fi
 
   if [ -n "${PHP_INI_SCAN_DIR}" ] && [ -d "${PHP_INI_SCAN_DIR}" ]; then
@@ -395,7 +395,7 @@ install() {
     else
       echo 'no found PHP in $PATH'
       echo 'please reinstall PHP '
-      exit 0
+      exit 3
     fi
   fi
 
