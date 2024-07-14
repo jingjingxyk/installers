@@ -16,14 +16,14 @@ if [ "$OS" = 'Linux' ]; then
 fi
 
 CPU_LOGICAL_PROCESSORS=4
-MIRROR=''
+MIRROR='' # swoole 源码镜像源
 DEBUG=0
 ENABLE_TEST=0
-VERSION_LATEST=0
-SWOOLE_VERSION=''
-PHPY_VERSION=''
-INSTALL_PHP=0       # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
-FORCE_INSTALL_PHP=0 # 0 未设置、3 要求安装PHP
+VERSION_LATEST=0        # 保持源码最新，每次执行都需要下载源码
+X_SWOOLE_VERSION=''     # 指定 swoole 版本
+SWOOLE_VERSION='master' # 默认 swoole 版本
+INSTALL_PHP=0           # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
+FORCE_INSTALL_PHP=0     # 0 未设置、3 要求安装PHP
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -37,10 +37,7 @@ while [ $# -gt 0 ]; do
     VERSION_LATEST=1
     ;;
   --swoole-version)
-    SWOOLE_VERSION='master'
-    ;;
-  --phpy-version)
-    PHPY_VERSION='main'
+    X_SWOOLE_VERSION="$2"
     ;;
   --test)
     ENABLE_TEST=1
@@ -90,8 +87,11 @@ install_swoole_dependencies() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux')
-      ym update -y
+    'rocky' | 'almalinux' | 'alinux')
+      yum update -y
+      yum install -y git wget curl-minimal ca-certificates
+      yum install -y autoconf automake libtool cmake bison gettext zip unzip xz
+      yum install -y pkg-config bzip2 flex
       yum install -y c-ares-devel libcurl-devel pcre-devel postgresql-devel unixODBC brotli-devel sqlite-devel
 
       ;;
@@ -101,7 +101,7 @@ install_swoole_dependencies() {
       ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
       apt update -y
       apt install -y git curl wget ca-certificates
-      apt install -y xz-utils autoconf automake clang-tools clang lld libtool cmake bison re2c gettext coreutils lzip zip unzip
+      apt install -y xz-utils autoconf automake libtool cmake bison re2c gettext coreutils lzip zip unzip
       apt install -y pkg-config bzip2 flex p7zip
 
       apt install -y gcc g++ libtool-bin autopoint
@@ -131,7 +131,7 @@ install_swoole_dependencies() {
   esac
 }
 
-php_install() {
+install_php() {
   case "$OS" in
   Darwin | darwin)
     export HOMEBREW_NO_ANALYTICS=1
@@ -142,10 +142,11 @@ php_install() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux')
+    'rocky' | 'almalinux' | 'alinux')
       yum update -y
-      yum install -y php-cli php-pear php-devel php-curl php-intl
+      yum install -y php-cli php-pear php-devel php-curl php-intl php-json
       yum install -y php-mbstring php-tokenizer php-xml
+      yum install -y  php-pdo php-mysqlnd
       ;;
     'debian' | 'ubuntu')
       export DEBIAN_FRONTEND=noninteractive
@@ -192,10 +193,33 @@ php_install() {
 }
 
 install_swoole() {
+  local SWOOLE_OPTIONS=''
+
+  # shellcheck disable=SC2155
+  local PHP_VERSION=$($(which php-config) --vernum)
+
+  if test -n "${X_SWOOLE_VERSION}"; then
+    SWOOLE_VERSION="${X_SWOOLE_VERSION}"
+  fi
+
+  if test $((PHP_VERSION)) -ge 80000 -a $((PHP_VERSION)) -ge 80100; then
+    test -z "${X_SWOOLE_VERSION}" && SWOOLE_VERSION="5.1.x"
+  fi
+
+  if test $((PHP_VERSION)) -ge 70200 -a $((PHP_VERSION)) -lt 80000; then
+    test -z "${X_SWOOLE_VERSION}" && SWOOLE_VERSION="4.8.x"
+    SWOOLE_OPTIONS=' --enable-swoole-json --enable-http2 '
+  fi
+
+  if test $((PHP_VERSION)) -lt 70200; then
+    echo 'no support this php version'
+    exit 0
+  fi
 
   install_swoole_dependencies
 
   mkdir -p /tmp/build
+  # shellcheck disable=SC2164
   cd /tmp/build/
 
   # 保持源码最新
@@ -203,10 +227,10 @@ install_swoole() {
 
   case "$MIRROR" in
   china)
-    test -d swoole-src || git clone -b master --single-branch --depth=1 https://gitee.com/swoole/swoole.git swoole-src
+    test -d swoole-src || git clone -b $SWOOLE_VERSION --single-branch --depth=1 https://gitee.com/swoole/swoole.git swoole-src
     ;;
   *)
-    test -d swoole-src || git clone -b master --single-branch --depth=1 https://github.com/swoole/swoole-src.git
+    test -d swoole-src || git clone -b $SWOOLE_VERSION --single-branch --depth=1 https://github.com/swoole/swoole-src.git
     ;;
   esac
 
@@ -247,8 +271,8 @@ install_swoole() {
     CPU_LOGICAL_PROCESSORS=$(grep "processor" /proc/cpuinfo | sort -u | wc -l)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux')   # | 'rhel' |  'centos' | 'fedora'  # 未测试
-      SWOOLE_ODBC_OPTIONS="" # 缺少 unixODBC-devel
+    'rocky' | 'almalinux' | 'alinux') # | 'rhel' |  'centos' | 'fedora'  # 未测试
+      SWOOLE_ODBC_OPTIONS=""          # 缺少 unixODBC-devel
       ;;
     'debian' | 'ubuntu') # | 'alpine' # 构建报错
       SWOOLE_IO_URING=' --enable-iouring '
@@ -274,6 +298,7 @@ install_swoole() {
     --enable-mysqlnd \
     --enable-cares \
     --enable-swoole-curl \
+    ${SWOOLE_OPTIONS} \
     --enable-swoole-pgsql \
     --enable-swoole-sqlite \
     ${SWOOLE_ODBC_OPTIONS} \
@@ -340,7 +365,15 @@ install() {
   check_environment
   if test ${INSTALL_PHP} -eq 2 -a ${FORCE_INSTALL_PHP} -eq 3; then
     # 系统未安装PHP ，指定要求安装PHP
-    php_install
+    install_php
+    if test -x "$(which php)"; then
+      echo 'INSTALL PHP SUCCESS '
+      $(which php) -v
+    else
+      echo 'no found PHP in $PATH'
+      echo 'please reinstall PHP '
+      exit 0
+    fi
   fi
 
   install_swoole
