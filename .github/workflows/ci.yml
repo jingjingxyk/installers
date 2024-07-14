@@ -25,11 +25,7 @@ jobs:
           image: ${{ matrix.container_image }}
           options: -v ${{ github.workspace }}:/work -w /work
           run: |
-            OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
-            [ "${OS_RELEASE}" == 'alpine' ] && apk update && apk add bash
-            [ "${OS_RELEASE}" == 'ubuntu' ] && sed -i "s@security.ubuntu.com@azure.archive.ubuntu.com@g" /etc/apt/sources.list
-            [ "${OS_RELEASE}" == 'ubuntu' ] && sed -i "s@archive.ubuntu.com@azure.archive.ubuntu.com@g" /etc/apt/sources.list
-
+            sh .github/workflows/init.sh
             bash install.sh --install-php 1
       - name: show info
         run: |
