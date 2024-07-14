@@ -478,6 +478,7 @@ install() {
       fi
     fi
   fi
+  install_swoole_dependencies
   install_swoole
 
 }
