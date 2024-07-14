@@ -26,14 +26,14 @@ jobs:
     strategy:
       matrix:
         container_image:
-#          - ubuntu:20.04
-#          - ubuntu:24.10
-#          - debian:11
-#          - debian:12
-#          - kalilinux/kali-rolling
-#          - alpine:3.18
-#          - rockylinux:9.3
-#          - fedora:41
+          - ubuntu:20.04
+          - ubuntu:24.10
+          - debian:11
+          - debian:12
+          - kalilinux/kali-rolling
+          - alpine:3.18
+          - rockylinux:9.3
+          - fedora:41
           #  - archlinux:latest
           - php:8.3-zts-alpine3.20
           - php:8.2-zts-alpine3.20
