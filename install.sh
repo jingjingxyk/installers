@@ -442,7 +442,7 @@ install() {
 
       test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && docker-php-ext-configure openssl && docker-php-ext-enable openssl
       test ${EXTENSION_CURL_EXISTS} -eq 0 && docker-php-ext-configure curl && docker-php-ext-enable curl
-      test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && docker-php-ext-configure sockets && docker-php-ext-enable sockets
+      test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && docker-php-ext-configure sockets && docker-php-ext-install sockets &&  docker-php-ext-enable sockets
       test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && docker-php-ext-configure mysqlnd && docker-php-ext-enable mysqlnd
       test ${EXTENSION_PDO_EXISTS} -eq 0 && docker-php-ext-configure pdo && docker-php-ext-enable pdo
 
