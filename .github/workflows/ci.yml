@@ -17,8 +17,6 @@ jobs:
           - alpine:3.18
           - rockylinux:9.3
           - fedora:41
-          - redhat/ubi9-init
-
     steps:
       - uses: actions/checkout@v3
       - name: build-swoole
