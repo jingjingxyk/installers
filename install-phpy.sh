@@ -122,7 +122,7 @@ install_phpy_dependencies() {
 }
 
 install_phpy() {
-  install_phpy_dependencies
+  # install_phpy_dependencies
   if test -n "${X_PHPY_VERSION}"; then
     PHPY_VERSION="${X_PHPY_VERSION}"
   fi
