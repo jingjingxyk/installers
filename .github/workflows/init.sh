@@ -12,4 +12,8 @@ case "$OS_RELEASE" in
   apk update
   apk add bash
   ;;
+    'arch')
+      pacman -Syyu --noconfirm
+      pacman -Sy --noconfirm which
+  ;;
 esac
