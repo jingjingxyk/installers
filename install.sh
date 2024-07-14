@@ -422,10 +422,47 @@ install() {
       echo 'please reinstall PHP '
       exit 3
     fi
-  elif test ${INSTALL_PHP} -eq 2 ; then
-    # 系统已经安装了PHP, 不执行安装 PHP ，启用需要的扩展
+  elif test ${INSTALL_PHP} -eq 1; then
+    # 系统已经安装了PHP, 不再执行安装 PHP ，需要启用被依赖的扩展
+    local EXTENSION_OPENSSL_EXISTS=0
+    local EXTENSION_CURL_EXISTS=0
+    local EXTENSION_SOCKETS_EXISTS=0
+    local EXTENSION_MYSQLND_EXISTS=0
+    local EXTENSION_PDO_EXISTS=0
 
+    php --ri openssl >/dev/null && EXTENSION_OPENSSL_EXISTS=1
+    php --ri curl >/dev/null && EXTENSION_CURL_EXISTS=1
+    php --ri sockets >/dev/null && EXTENSION_SOCKETS_EXISTS=1
+    php --ri mysqlnd >/dev/null && EXTENSION_MYSQLND_EXISTS=1
+    php --ri pdo >/dev/null && EXTENSION_PDO_EXISTS=1
 
+    # shellcheck disable=SC2046
+    if test -f /.dockerenv -a -x $(which docker-php-source) -a -x $(which docker-php-ext-configure) -a -x $(which docker-php-ext-enable); then
+      # php 容器
+      docker-php-source extract
+
+      test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && docker-php-ext-configure openssl && docker-php-ext-enable openssl
+      test ${EXTENSION_CURL_EXISTS} -eq 0 && docker-php-ext-configure curl && docker-php-ext-enable curl
+      test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && docker-php-ext-configure sockets && docker-php-ext-enable sockets
+      test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && docker-php-ext-configure mysqlnd && docker-php-ext-enable mysqlnd
+      test ${EXTENSION_PDO_EXISTS} -eq 0 && docker-php-ext-configure pdo && docker-php-ext-enable pdo
+
+      docker-php-source delete
+    else
+      local MESSAGES=' please manual enable extension : '
+      local SUM=0
+      test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  openssl" && ((SUM++))
+      test ${EXTENSION_CURL_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  curl" && ((SUM++))
+      test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && MESSAGES="${MESSAGES} sockets" && ((SUM++))
+      test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  mysqlnd " && ((SUM++))
+      test ${EXTENSION_PDO_EXISTS} -eq 0 && MESSAGES="${MESSAGES} pdo  " && ((SUM++))
+
+      if test $SUM -gt 0; then
+        echo $MESSAGES
+        exit 0
+      fi
+
+    fi
 
   fi
 
