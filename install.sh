@@ -279,8 +279,8 @@ install_swoole() {
     SWOOLE_DEBUG_OPTIONS=' --enable-debug --enable-debug-log --enable-trace-log '
   fi
 
-  # shellcheck disable=SC2046
-  local PHP_ZTS=$(php -r "echo PHP_ZTS;")
+  # shellcheck disable=SC2155
+  local PHP_ENABLE_ZTS=$(php -r "echo PHP_ZTS;")
   if [ "${PHP_ENABLE_ZTS}" == '1' ]; then
     SWOOLE_THREAD_OPTION="--enable-swoole-thread "
   fi
