@@ -44,6 +44,6 @@ curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/install.sh | b
 | [fedora ](https://fedoraproject.org/)           | ✅    |
 | [alpine](https://www.alpinelinux.org/)          | ✅    |
 | [kali](https://www.kali.org/)                   | ✅    |
-| macos                                           | ✅    |
+| [macos](https://www.apple.com/)                 | ✅    |
 | wsl                                             |      |
 | FreeBSD 13                                      |      |
