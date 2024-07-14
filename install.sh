@@ -380,7 +380,7 @@ EOF
 
   php -v
   php --ini
-  php --ini | grep ".ini files"
+  php --ini | grep "Scan for additional .ini files in:"
   php --ri swoole
 }
 
