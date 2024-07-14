@@ -19,7 +19,7 @@ cd ${__DIR__}
 }
 cd ${__DIR__}
 
-IMAGE=8.1-zts-bullseye
+IMAGE=php:8.1-zts-bullseye
 
 
 while [ $# -gt 0 ]; do
