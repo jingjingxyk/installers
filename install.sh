@@ -436,7 +436,7 @@ install() {
   fi
 
   if test ${INSTALL_PHP} -eq 1; then
-    # 系统已经安装了PHP, 不再执行安装 PHP ，需要启用被依赖的扩展
+    # 系统已经安装了PHP, 不再执行安装 PHP ，启用被swoole依赖的扩展
     local EXTENSION_OPENSSL_EXISTS=0
     local EXTENSION_CURL_EXISTS=0
     local EXTENSION_SOCKETS_EXISTS=0
