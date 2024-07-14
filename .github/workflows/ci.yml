@@ -32,7 +32,7 @@ jobs:
 
             bash install.sh --install-php 1
       - name: show info
-        run:
+        run: |
           php -v
           php -m
           php --ri swoole
@@ -52,7 +52,7 @@ jobs:
         run: |
           bash install.sh --install-php 1
       - name: show info
-        run:
+        run: |
           php -v
           php -m
           php --ri swoole
