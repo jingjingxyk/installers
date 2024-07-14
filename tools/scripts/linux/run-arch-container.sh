@@ -28,7 +28,8 @@ while [ $# -gt 0 ]; do
     MIRROR="$2"
     case "$MIRROR" in
       china | openatom)
-        IMAGE="hub.atomgit.com/library/archlinux:base"
+        echo '暂不可用'
+        # IMAGE="hub.atomgit.com/library/archlinux:base"
         ;;
     esac
     ;;
