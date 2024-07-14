@@ -112,7 +112,7 @@ install_phpy() {
     test -d phpy || git clone -b $PHPY_VERSION --single-branch --depth=1 https://gitee.com/swoole/phpy.git
     ;;
   *)
-    test -d phpy || git clone -b $PHPY_VERSION --single-branch --depth=1 https://gitee.com/swoole/phpy.git
+    test -d phpy || git clone -b $PHPY_VERSION --single-branch --depth=1 https://github.com/swoole/phpy.git
     ;;
   esac
   if [ $? -ne 0 ]; then
