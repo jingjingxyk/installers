@@ -18,6 +18,8 @@ jobs:
           - alpine:3.18
           - rockylinux:9.3
           - fedora:41
+        #  - archlinux:latest
+
     steps:
       - uses: actions/checkout@v3
       - name: build-swoole

@@ -118,11 +118,16 @@ install_swoole_dependencies() {
     'alpine')
       apk update
       apk add autoconf automake make libtool cmake bison re2c gcc g++ git curl wget pkgconf ca-certificates
-      apk add clang-dev clang lld alpine-sdk xz autoconf automake tar gzip zip unzip bzip2
+      apk add clang-dev clang lld alpine-sdk xz tar gzip zip unzip bzip2
       apk add curl-dev c-ares-dev postgresql-dev sqlite-dev unixodbc-dev liburing-dev linux-headers
 
       ;;
-    'arch') ;;
+    'arch')
+      pacman -Sy --noconfirm gcc autoconf automake make libtool cmake bison re2c gcc git curl
+      pacman -Sy --noconfirm xz automake tar gzip zip unzip bzip2 pkg-config
+      pacman -Sy --noconfirm curl postgresql-libs c-ares sqlite unixodbc liburing linux-headers
+
+      ;;
 
     esac
     ;;
@@ -180,8 +185,9 @@ install_php() {
       ln -sf /usr/bin/php-config82 /usr/bin/php-config
 
       ;;
-    'arch') ;;
-
+    'arch')
+      pacman -Sy --noconfirm php php-sqlite
+      ;;
     esac
     ;;
   *)
@@ -304,7 +310,10 @@ install_swoole() {
       SWOOLE_IO_URING=' --enable-iouring '
       SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
       ;;
-    'arch') ;;
+    'arch')
+      SWOOLE_IO_URING=' --enable-iouring '
+      SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
+      ;;
     'alpine') # 构建 iouring 报错
       ;;
 
