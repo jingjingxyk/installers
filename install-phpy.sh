@@ -77,8 +77,52 @@ check_php_exists() {
   fi
 }
 
-install_phpy() {
+install_phpy_dependencies() {
+  case "$OS" in
+  Darwin | darwin)
+    export HOMEBREW_NO_ANALYTICS=1
+    export HOMEBREW_NO_AUTO_UPDATE=1
+    export HOMEBREW_INSTALL_FROM_API=1
+    brew install python3
+    ;;
+  Linux)
+    OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
+    case "$OS_RELEASE" in
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'amzn')
+      yum install -y update
+      yum install -y python3
+      ;;
+    'debian' | 'ubuntu' | 'kali')
+      export DEBIAN_FRONTEND=noninteractive
+      export TZ="Etc/UTC"
+      ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
+      apt update -y
+      apt install -y python3 python3-pip
 
+      ;;
+    'alpine')
+      apk update
+      apk add python3 py3-pip
+      ;;
+    'arch')
+      pacman -Sy --noconfirm python3 python3-pip
+
+      ;;
+
+    esac
+    ;;
+  *)
+    case "$(uname -r)" in
+    *microsoft* | *Microsoft*)
+      # WSL
+      ;;
+    esac
+    ;;
+  esac
+}
+
+install_phpy() {
+  install_phpy_dependencies
   if test -n "${X_PHPY_VERSION}"; then
     PHPY_VERSION="${X_PHPY_VERSION}"
   fi
