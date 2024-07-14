@@ -422,6 +422,11 @@ install() {
       echo 'please reinstall PHP '
       exit 3
     fi
+  elif test ${INSTALL_PHP} -eq 2 ; then
+    # 系统已经安装了PHP, 不执行安装 PHP ，启用需要的扩展
+
+
+
   fi
 
   install_swoole
