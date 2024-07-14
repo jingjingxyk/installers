@@ -87,7 +87,7 @@ install_swoole_dependencies() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora')
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'amzn')
       yum update -y
       { yum install -y curl; } || { echo $?; }
       { yum install -y curl-minimal; } || { echo $?; }
@@ -122,6 +122,8 @@ install_swoole_dependencies() {
       apk add curl-dev c-ares-dev postgresql-dev sqlite-dev unixodbc-dev liburing-dev linux-headers
 
       ;;
+    'arch') ;;
+
     esac
     ;;
   *)
@@ -145,13 +147,13 @@ install_php() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora')
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora') # |  'amzn' | 'ol' | 'openEuler' | 'rhel' | 'centos'  # 未测试
       yum update -y
       yum install -y php-cli php-pear php-devel php-curl php-intl php-json
       yum install -y php-mbstring php-tokenizer php-xml
       yum install -y php-pdo php-mysqlnd
       ;;
-    'debian' | 'ubuntu' | 'kali')
+    'debian' | 'ubuntu' | 'kali') # 'raspbian' | 'deeping'| 'uos' | 'kylin'
       export DEBIAN_FRONTEND=noninteractive
       export TZ="Etc/UTC"
       ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
@@ -178,6 +180,8 @@ install_php() {
       ln -sf /usr/bin/php-config82 /usr/bin/php-config
 
       ;;
+    'arch') ;;
+
     esac
     ;;
   *)
@@ -293,13 +297,17 @@ install_swoole() {
     CPU_LOGICAL_PROCESSORS=$(grep "processor" /proc/cpuinfo | sort -u | wc -l)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora') # | 'rhel' |  'centos'  # 未测试
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora') # |  'amzn' | 'ol' | 'openEuler' | 'rhel' | 'centos'  # 未测试
       SWOOLE_ODBC_OPTIONS=""                                # 缺少 unixODBC-devel
       ;;
-    'debian' | 'ubuntu' | 'kali') # | 'alpine' # 构建 iouring 报错
+    'debian' | 'ubuntu' | 'kali') # 'raspbian' | 'deeping'| 'uos' | 'kylin'
       SWOOLE_IO_URING=' --enable-iouring '
       SWOOLE_ODBC_OPTIONS="--with-swoole-odbc=unixODBC,/usr"
       ;;
+    'arch') ;;
+    'alpine') # 构建 iouring 报错
+      ;;
+
     esac
     ;;
   *) ;;
@@ -387,7 +395,7 @@ EOF
 install() {
   check_environment
   if test ${INSTALL_PHP} -eq 2 -a ${FORCE_INSTALL_PHP} -eq 3; then
-    # 系统未安装PHP ，指定要求安装PHP
+    # 系统未安装PHP ，要求安装PHP
     install_php
     if test -x "$(which php)"; then
       echo 'INSTALL PHP SUCCESS '
