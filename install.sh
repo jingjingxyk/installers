@@ -335,7 +335,7 @@ install_swoole() {
   ./configure --help
 
   ./configure \
-    --with-php-config="${PHP-CONFIG}" \
+    --with-php-config="${PHP_CONFIG}" \
     ${SWOOLE_DEBUG_OPTIONS} \
     --enable-openssl \
     --enable-sockets \
