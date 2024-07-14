@@ -212,8 +212,6 @@ install_php() {
 
 install_swoole() {
 
-  install_swoole_dependencies
-
   local SWOOLE_OPTIONS=''
 
   # shellcheck disable=SC2155
@@ -410,6 +408,7 @@ EOF
 }
 
 install() {
+  install_swoole_dependencies
   check_environment
   if test ${INSTALL_PHP} -eq 2 -a ${FORCE_INSTALL_PHP} -eq 3; then
     # 系统未安装PHP ，要求安装PHP
@@ -465,7 +464,6 @@ install() {
     fi
 
   fi
-
   install_swoole
 
 }
