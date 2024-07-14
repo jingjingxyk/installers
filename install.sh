@@ -48,7 +48,7 @@ while [ $# -gt 0 ]; do
     fi
     ;;
   --*)
-    echo "no found mirror option $1"
+    echo "no found  option $1"
     ;;
   esac
   shift $(($# > 0 ? 1 : 0))
@@ -379,7 +379,7 @@ EOF
 install() {
   check_environment
   if test ${INSTALL_PHP} -eq 2 -a ${FORCE_INSTALL_PHP} -eq 3; then
-    # 系统未安装PHP ，指定要求安装PHP
+    # 系统未安装PHP ，按照要求安装 PHP
     install_php
     if test -x "$(which php)"; then
       echo 'INSTALL PHP SUCCESS '

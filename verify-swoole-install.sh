@@ -14,3 +14,5 @@ else
   exit 0
 fi
 
+php -m
+php --ri swoole
