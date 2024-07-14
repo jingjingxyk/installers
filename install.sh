@@ -24,6 +24,7 @@ X_SWOOLE_VERSION=''     # 指定 swoole 版本
 SWOOLE_VERSION='master' # 默认 swoole 版本
 INSTALL_PHP=0           # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
 FORCE_INSTALL_PHP=0     # 0 未设置、3 要求安装PHP
+PHP_CONFIG='' # php-config 位置
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -63,6 +64,7 @@ check_environment() {
     ${PHP} -v
     ${PHPIZE} --help
     ${PHP_CONFIG} --help
+
     INSTALL_PHP=1
   else
     INSTALL_PHP=2
@@ -332,6 +334,7 @@ install_swoole() {
   ./configure --help
 
   ./configure \
+    --with-php-config="${PHP-CONFIG}" \
     ${SWOOLE_DEBUG_OPTIONS} \
     --enable-openssl \
     --enable-sockets \
@@ -396,8 +399,9 @@ EOF
   fi
 
   php -v
+  php -m
   php --ini
-  php --ini | grep "Scan for additional .ini files in:"
+  php --ini | grep ".ini files"
   php --ri swoole
 }
 

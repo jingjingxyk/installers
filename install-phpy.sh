@@ -19,19 +19,17 @@ CPU_LOGICAL_PROCESSORS=4
 MIRROR='' # phpy 源码镜像源
 DEBUG=0
 ENABLE_TEST=0
-VERSION_LATEST=0        # 保持源码最新，每次执行都需要下载源码
-X_PHPY_VERSION=''     # 指定  phpy 版本
+VERSION_LATEST=0    # 保持源码最新，每次执行都需要下载源码
+X_PHPY_VERSION=''   # 指定  phpy 版本
 PHPY_VERSION='main' # 默认 phpy 版本
-PHP_VERSION=''  # PHP 版本
-
-
+PHP_VERSION=''      # PHP 版本
+PYTHON_DIR=''       # python 所在目录
+PYTHON_VERSION=''   # python 版本
+PYTHON_CONFIG=''    # python-config 文件位置
 while [ $# -gt 0 ]; do
   case "$1" in
   --mirror)
     MIRROR="$2"
-    ;;
-  --debug)
-    DEBUG=1
     ;;
   --latest)
     VERSION_LATEST=1
@@ -41,6 +39,15 @@ while [ $# -gt 0 ]; do
     ;;
   --test)
     ENABLE_TEST=1
+    ;;
+  --with-python-dir)
+    PYTHON_DIR="$2"
+    ;;
+  --with-python-config)
+    PYTHON_CONFIG="$2"
+    ;;
+  --with-python-version)
+    PYTHON_VERSION="$2"
     ;;
   --*)
     echo "no found  option $1"
@@ -59,6 +66,9 @@ check_php_exists() {
     ${PHPIZE} --help
     ${PHP_CONFIG} --help
     PHP_VERSION=$($(which php-config) --vernum)
+    PYTHON_DIR=$(python3-config --prefix)
+    PYTHON_VERSION="$(python3 -V | awk '{ print $2 }')"
+    PYTHON_CONFIG=$(which python3-config)
     return 1
   else
     return 0
@@ -97,15 +107,13 @@ install_phpy() {
 
   case "$MIRROR" in
   china)
-    test -d phpy || git clone -b $PHPY_VERSION --single-branch --depth=1 https://gitee.com/swoole/phpy.git swoole-src
+    test -d phpy || git clone -b $PHPY_VERSION --single-branch --depth=1 https://gitee.com/swoole/phpy.git
     ;;
   *)
     test -d phpy || git clone -b $PHPY_VERSION --single-branch --depth=1 https://gitee.com/swoole/phpy.git
     ;;
   esac
   echo $PHPY_VERSION >phpy/x-phpy-version
-
-
 
   case "$OS" in
   Darwin)
@@ -126,27 +134,15 @@ install_phpy() {
   ./configure --help
 
   ./configure \
-    ${SWOOLE_DEBUG_OPTIONS} \
-    --enable-openssl \
-    --enable-sockets \
-    --enable-mysqlnd \
-    --enable-cares \
-    --enable-swoole-curl \
-    ${SWOOLE_OPTIONS} \
-    --enable-swoole-pgsql \
-    --enable-swoole-sqlite \
-    ${SWOOLE_ODBC_OPTIONS} \
-    ${SWOOLE_IO_URING} \
-    ${SWOOLE_THREAD_OPTION}
+    --with-php-config="${PHP-CONFIG}" \
+    --with-python-dir="${PYTHON_DIR}" \
+    --with-python-config="${PYTHON_CONFIG}" \
+    --with-python-version="${PYTHON_VERSION}"
 
   if [ $? -ne 0 ]; then
     echo $?
     exit 0
   fi
-
-  # --with-php-config=/usr/bin/php-config
-  # --enable-swoole-thread  \
-  # --enable-iouring
 
   make -j ${CPU_LOGICAL_PROCESSORS}
 
@@ -156,9 +152,9 @@ install_phpy() {
   fi
 
   if test $ENABLE_TEST -eq 1; then
-    cd /tmp/build/swoole-src/tests/include/lib/
+    cd /tmp/build/phpy/tests/include/lib/
     composer install
-    cd /tmp/build/swoole-src/
+    cd /tmp/build/phpy/
     make test
   fi
 
@@ -182,26 +178,30 @@ install_phpy() {
       SUDO='sudo'
     fi
 
-    ${SUDO} tee ${PHP_INI_SCAN_DIR}/90-swoole.ini <<EOF
-extension=swoole.so
+    ${SUDO} tee ${PHP_INI_SCAN_DIR}/91-phpy.ini <<EOF
+extension=phpy.so
 swoole.use_shortname=On
 EOF
 
   fi
 
   php -v
+  php -m
   php --ini
   php --ini | grep ".ini files"
-  php --ri swoole
+  php --ri phpy
 }
 
 install() {
-  if test check_php_exists -eq 1 ; then
-     install_phpy
+  check_php_exists
+  if [ $? -eq 1 ]; then
+    install_phpy
   else
-      echo 'no found PHP IN $PATH '
+    echo 'no found PHP IN $PATH '
   fi
 }
 
 # 安装 入口
 install
+
+#  --with-python-dir=/opt/anaconda3  -with-python-config=/opt/anaconda3/bin/python3-config --with-python-version=3.12
