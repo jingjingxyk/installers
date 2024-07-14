@@ -123,7 +123,7 @@ install_swoole_dependencies() {
 
       ;;
     'arch')
-      pacman -Sy --noconfirm gcc autoconf automake make libtool cmake bison re2c gcc g++ git curl
+      pacman -Sy --noconfirm gcc autoconf automake make libtool cmake bison re2c gcc git curl
       pacman -Sy --noconfirm xz automake tar gzip zip unzip bzip2
       pacman -Sy --noconfirm curl postgresql-libs c-ares sqlite unixodbc liburing linux-headers
 
