@@ -393,7 +393,13 @@ install_swoole() {
       SUDO='sudo'
     fi
 
-    ${SUDO} tee ${PHP_INI_SCAN_DIR}/90-swoole.ini <<EOF
+    SWOOLE_INIT_FILE=${PHP_INI_SCAN_DIR}/90-swoole.ini
+    # shellcheck disable=SC2046
+    # 解决 php official 容器中 扩展加载顺序问题
+    if test -f /.dockerenv -a -x $(which docker-php-source) -a -x $(which docker-php-ext-enable); then
+      SWOOLE_INIT_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-swoole-90.ini
+    fi
+    ${SUDO} tee ${SWOOLE_INIT_FILE} <<EOF
 extension=swoole.so
 swoole.use_shortname=On
 EOF
@@ -437,14 +443,14 @@ install() {
 
     # shellcheck disable=SC2046
     if test -f /.dockerenv -a -x $(which docker-php-source) -a -x $(which docker-php-ext-configure) -a -x $(which docker-php-ext-enable); then
-      # php 容器
+      # php 容器中 启用被 swoole 依赖的扩展
       docker-php-source extract
 
-      test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && docker-php-ext-configure openssl && docker-php-ext-enable openssl
-      test ${EXTENSION_CURL_EXISTS} -eq 0 && docker-php-ext-configure curl && docker-php-ext-enable curl
-      test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && docker-php-ext-configure sockets && docker-php-ext-install sockets &&  docker-php-ext-enable sockets
-      test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && docker-php-ext-configure mysqlnd && docker-php-ext-enable mysqlnd
-      test ${EXTENSION_PDO_EXISTS} -eq 0 && docker-php-ext-configure pdo && docker-php-ext-enable pdo
+      test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && docker-php-ext-configure openssl && docker-php-ext-install openssl && docker-php-ext-enable openssl
+      test ${EXTENSION_CURL_EXISTS} -eq 0 && docker-php-ext-configure curl && docker-php-ext-install curl && docker-php-ext-enable curl
+      test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && docker-php-ext-configure sockets && docker-php-ext-install sockets && docker-php-ext-enable sockets
+      test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && docker-php-ext-configure mysqlnd && docker-php-ext-install mysqlnd && docker-php-ext-enable mysqlnd
+      test ${EXTENSION_PDO_EXISTS} -eq 0 && docker-php-ext-configure pdo && docker-php-ext-install pdo && docker-php-ext-enable pdo
 
       docker-php-source delete
     else
