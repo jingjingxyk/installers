@@ -2,6 +2,14 @@
 
 一行命令给PHP安装上 swoole 扩展
 
+## rhel 系 、alpine、archlinux  `which` command no found
+
+```bash
+
+sh init.sh
+
+```
+
 ## 用法
 
 From https://www.swoole.com:
