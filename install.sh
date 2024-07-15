@@ -496,6 +496,7 @@ install() {
       if [ "$OS" == 'Linux' ]; then
         OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
         if [ "${OS_RELEASE}" == 'arch' ]; then
+          install_swoole_dependencies
           mkdir -p /tmp/build
           local PHP_TMP_VERSION="$(php-config --version)"
           local PHP_TMP_DIR=/tmp/build/php-src-${PHP_TMP_VERSION}
