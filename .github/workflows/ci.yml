@@ -12,7 +12,7 @@ jobs:
       - name: native ubuntu install swoole
         run: |
           sudo sh .github/workflows/init.sh
-          sudo bash install.sh # --install-php 1
+          sudo bash install.sh --install-php 1
       - name: show info
         run: |
           php -v
@@ -51,8 +51,7 @@ jobs:
           options: -v ${{ github.workspace }}:/work -w /work
           run: |
             sh .github/workflows/init.sh
-            bash install.sh # --install-php 1
-            # bash install-phpy.sh
+            bash install.sh --install-php 1
 
   macos:
     runs-on: ${{  matrix.macos_version }}
