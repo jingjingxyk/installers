@@ -14,8 +14,6 @@ if [ "$OS" = 'Linux' ]; then
   fi
 fi
 
-
-INIT_FILE='https://github.com/swoole/installers/blob/main/init.sh?raw=true' # 解决 rhel 系 、alpine、archlinux  `which` command no found
 CPU_LOGICAL_PROCESSORS=4
 MIRROR='' # swoole 源码镜像源
 ENABLE_TEST=0
@@ -74,12 +72,6 @@ china)
 *) ;;
 
 esac
-
-if -f ./init.sh ; then
-  bash init.sh
-else
-  curl -fsSL  https://github.com/swoole/installers/blob/main/init.sh?raw=true | bash -s
-fi
 
 check_php() {
   PHP="$(which php)"
@@ -552,7 +544,6 @@ EOF
 }
 
 install() {
-  init()
   configure_environment
   if test ${INSTALL_PHP} -eq 1; then
     install_swoole_dependent_library

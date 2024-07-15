@@ -2,14 +2,6 @@
 
 一行命令给PHP安装上 swoole 扩展
 
-## rhel 系 、alpine、archlinux  `which` command no found
-
-```bash
-
-sh init.sh
-
-```
-
 ## 用法
 
 From https://www.swoole.com:
@@ -36,6 +28,18 @@ curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/install.sh | b
 
 # 使用系统包管理工具安装 php
 curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/install.sh | bash -s -- --mirror china --latest --install-php
+
+```
+
+## rhel 系 、alpine、archlinux  解决 `which` command no found
+
+```bash
+
+curl -fsSL  https://github.com/swoole/installers/blob/main/init.sh?raw=true | bash
+
+# mirror
+
+curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/init.sh  | bash
 
 ```
 
