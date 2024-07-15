@@ -4,7 +4,6 @@ __DIR__=$(
   cd "$(dirname "$0")"
   pwd
 )
-set -x
 
 OS=$(uname -s)
 ARCH=$(uname -m)
@@ -17,11 +16,11 @@ fi
 
 CPU_LOGICAL_PROCESSORS=4
 MIRROR='' # swoole 源码镜像源
-DEBUG=0
 ENABLE_TEST=0
 VERSION_LATEST=0        # 保持源码最新，每次执行都需要下载源码
 X_SWOOLE_VERSION=''     # 指定 swoole 版本
 SWOOLE_VERSION='master' # 默认 swoole 版本
+SWOOLE_DEBUG=0          # 启用 swoole debug 编译参数
 INSTALL_PHP=0           # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
 FORCE_INSTALL_PHP=0     # 0 未设置、3 要求安装PHP
 PHP_CONFIG=''           # php-config 位置
@@ -32,7 +31,7 @@ while [ $# -gt 0 ]; do
     MIRROR="$2"
     ;;
   --debug)
-    DEBUG=1
+    set -x
     ;;
   --latest)
     VERSION_LATEST=1
@@ -40,7 +39,10 @@ while [ $# -gt 0 ]; do
   --swoole-version)
     X_SWOOLE_VERSION="$2"
     ;;
-  --test)
+  --swoole-debug)
+    SWOOLE_DEBUG=1
+    ;;
+  --swoole-test)
     ENABLE_TEST=1
     ;;
   --install-php)
@@ -94,7 +96,7 @@ install_swoole_dependencies() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'amzn')
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
       yum update -y
       { yum install -y curl; } || { echo $?; }
       { yum install -y curl-minimal; } || { echo $?; }
@@ -159,9 +161,11 @@ install_php() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora') # |  'amzn' | 'ol' | 'openEuler' | 'rhel' | 'centos'  # 未测试
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
       yum update -y
-      yum install -y php-cli php-pear php-devel php-curl php-intl php-json
+      yum install -y php-cli php-devel php-curl php-intl
+      { yum install -y php-pear; } || { echo $?; }
+      { yum install -y php-json; } || { echo $?; }
       yum install -y php-mbstring php-tokenizer php-xml
       yum install -y php-pdo php-mysqlnd
       ;;
@@ -196,6 +200,18 @@ install_php() {
       pacman -Sy --noconfirm php php-sqlite
       ;;
     esac
+    ;;
+  FreeBSD)
+    if [ ! -f /etc/os-release ]; then
+      echo 'support minimal version FreeBSD 13'
+      exit 0
+    fi
+    env ASSUME_ALWAYS_YES=YES
+    pkg install php83-8.3.6 php83-curl php83-pdo php83-sockets php83-phar
+    pkg install php83-iconv php83-gmp php83-intl php83-mbstring
+    pkg install php83-pgsql php83-readline php83-sqlite3 php83-sodium
+    pkg install php83-tokenizer php83-zip php83-xml php83-mysqli php83-xml php83-simplexml
+
     ;;
   *)
     case "$(uname -r)" in
@@ -280,7 +296,7 @@ install_swoole() {
   SWOOLE_DEBUG_OPTIONS=''
   SWOOLE_THREAD_OPTION=''
 
-  if [ $DEBUG -eq 1 ]; then
+  if [ $SWOOLE_DEBUG -eq 1 ]; then
     SWOOLE_DEBUG_OPTIONS=' --enable-debug --enable-debug-log --enable-trace-log '
   fi
 
@@ -313,8 +329,8 @@ install_swoole() {
     CPU_LOGICAL_PROCESSORS=$(grep "processor" /proc/cpuinfo | sort -u | wc -l)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora') # |  'amzn' | 'ol' | 'openEuler' | 'rhel' | 'centos'  # 未测试
-      SWOOLE_ODBC_OPTIONS=""                                # 缺少 unixODBC-devel
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
+      SWOOLE_ODBC_OPTIONS=""                                                      # 缺少 unixODBC-devel
       ;;
     'debian' | 'ubuntu' | 'kali') # 'raspbian' | 'deeping'| 'uos' | 'kylin'
       if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then

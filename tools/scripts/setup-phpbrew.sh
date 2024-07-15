@@ -11,7 +11,6 @@ __PROJECT__=$(
 )
 cd ${__DIR__}
 
-
 test -d ${__PROJECT__}/var/ || mkdir -p ${__PROJECT__}/var/
 
 cd ${__PROJECT__}/var/
@@ -37,3 +36,7 @@ test -f phpbrew.phar || curl -L -O https://github.com/phpbrew/phpbrew/releases/l
 test -x phpbrew.phar || chmod +x phpbrew.phar
 php phpbrew.phar --help
 sudo mv phpbrew.phar /usr/local/bin/phpbrew
+
+echo 'more info : https://github.com/phpbrew/phpbrew/'
+echo 'or'
+echo 'https://gitee.com/mirrors/PHPBrew'

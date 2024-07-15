@@ -6,11 +6,11 @@
 
 ## --install-php
 
-    系统未安装 PHP , 调用系统包管理工具 安装 PHP
+    系统未安装 PHP , 调用系统包管理工具 安装 PHP ，已安装 PHP 将不会执行安装 PHP
 
-## --debug
+## --swoole-debug
 
-    swoole 编译时开启debug 参数
+    swoole 开启 debug 编译 参数
 
 ## --swoole-version
 
@@ -21,6 +21,10 @@
     指定 swoole 源码地址
     选项值： china
 
-## --test
+## --swoole-test
 
-    swoole 编译完成以后，执行测试代码
+    swoole 编译完成以后，执行swoole测试代码
+
+## --debug
+
+    显示shell 正在执行的命令

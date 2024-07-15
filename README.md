@@ -47,3 +47,5 @@ curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/install.sh | b
 | [macos](https://www.apple.com/)                 | ✅    |
 | wsl                                             |      |
 | FreeBSD 13                                      |      |
+| [OpenEuler](https://www.openeuler.org/)         | ✅    |
+| Huawei Cloud EulerOS                            | ✅    |
