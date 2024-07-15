@@ -45,7 +45,7 @@ esac
 
 pacman -Syyu --noconfirm
 
-pacman -Sy --noconfirm git curl wget openssl xz zip unzip ca-certificates
+pacman -Sy --noconfirm git curl wget openssl xz zip unzip ca-certificates which
 
 # 搜索包
 pacman -Ss php

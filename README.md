@@ -49,3 +49,4 @@ curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/install.sh | b
 | FreeBSD 13                                                   |      |
 | [OpenEuler](https://www.openeuler.org/)                      | ✅    |
 | Huawei Cloud EulerOS                                         | ✅    |
+| [archlinux](https://archlinux.org/)                          | ✅    |
