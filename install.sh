@@ -163,7 +163,7 @@ install_php() {
     case "$OS_RELEASE" in
     'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
       yum update -y
-      yum install -y php-cli  php-devel php-curl php-intl
+      yum install -y php-cli php-devel php-curl php-intl
       { yum install -y php-pear; } || { echo $?; }
       { yum install -y php-json; } || { echo $?; }
       yum install -y php-mbstring php-tokenizer php-xml
@@ -202,6 +202,15 @@ install_php() {
     esac
     ;;
   FreeBSD)
+    if [ ! -f /etc/os-release ]; then
+      echo 'support minimal version FreeBSD 13'
+      exit 0
+    fi
+    env ASSUME_ALWAYS_YES=YES
+    pkg install php83-8.3.6 php83-curl php83-pdo php83-sockets php83-phar
+    pkg install php83-iconv php83-gmp php83-intl php83-mbstring
+    pkg install php83-pgsql php83-readline php83-sqlite3 php83-sodium
+    pkg install php83-tokenizer php83-zip php83-xml php83-mysqli php83-xml php83-simplexml
 
     ;;
   *)

@@ -27,7 +27,9 @@ env ASSUME_ALWAYS_YES=YES pkg update -f
 env ASSUME_ALWAYS_YES=YES pkg update
 env ASSUME_ALWAYS_YES=YES pkg upgrade
 env ASSUME_ALWAYS_YES=YES pkg bootstrap -f
-env ASSUME_ALWAYS_YES=YES pkg install git curl cmake llvm wget openssl socat
+env ASSUME_ALWAYS_YES=YES pkg install git curl cmake wget openssl socat
+env ASSUME_ALWAYS_YES=YES pkg install gcc
+env ASSUME_ALWAYS_YES=YES pkg install llvm
 
 
 # 版本需要大于等于 13
