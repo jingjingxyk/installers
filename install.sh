@@ -4,7 +4,6 @@ __DIR__=$(
   cd "$(dirname "$0")"
   pwd
 )
-set -x
 
 OS=$(uname -s)
 ARCH=$(uname -m)
@@ -17,11 +16,11 @@ fi
 
 CPU_LOGICAL_PROCESSORS=4
 MIRROR='' # swoole 源码镜像源
-DEBUG=0
 ENABLE_TEST=0
 VERSION_LATEST=0        # 保持源码最新，每次执行都需要下载源码
 X_SWOOLE_VERSION=''     # 指定 swoole 版本
 SWOOLE_VERSION='master' # 默认 swoole 版本
+SWOOLE_DEBUG=0          # 启用 swoole debug 编译参数
 INSTALL_PHP=0           # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
 FORCE_INSTALL_PHP=0     # 0 未设置、3 要求安装PHP
 PHP_CONFIG=''           # php-config 位置
@@ -32,7 +31,7 @@ while [ $# -gt 0 ]; do
     MIRROR="$2"
     ;;
   --debug)
-    DEBUG=1
+    set -x
     ;;
   --latest)
     VERSION_LATEST=1
@@ -40,7 +39,10 @@ while [ $# -gt 0 ]; do
   --swoole-version)
     X_SWOOLE_VERSION="$2"
     ;;
-  --test)
+  --swoole-debug)
+    SWOOLE_DEBUG=1
+    ;;
+  --swoole-test)
     ENABLE_TEST=1
     ;;
   --install-php)
@@ -281,7 +283,7 @@ install_swoole() {
   SWOOLE_DEBUG_OPTIONS=''
   SWOOLE_THREAD_OPTION=''
 
-  if [ $DEBUG -eq 1 ]; then
+  if [ $SWOOLE_DEBUG -eq 1 ]; then
     SWOOLE_DEBUG_OPTIONS=' --enable-debug --enable-debug-log --enable-trace-log '
   fi
 
