@@ -22,8 +22,12 @@ X_SWOOLE_VERSION=''     # 指定 swoole 版本
 SWOOLE_VERSION='master' # 默认 swoole 版本
 SWOOLE_DEBUG=0          # 启用 swoole debug 编译参数
 INSTALL_PHP=0           # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
-FORCE_INSTALL_PHP=0     # 0 未设置、3 要求安装PHP
-PHP_CONFIG=''           # php-config 位置
+FORCE_INSTALL_PHP=0     # 0 未设置、3 要求安装PHP =》 安装以后状态 1 成功安装PHP , 2 未成功安装PHP
+
+PHP=''              # php     位置
+PHPIZE=''           # phpize  位置
+PHP_CONFIG=''       # php-config 位置
+PHP_INI_SCAN_DIR='' # php 扫描配置目录
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -57,100 +61,29 @@ while [ $# -gt 0 ]; do
   shift $(($# > 0 ? 1 : 0))
 done
 
-check_environment() {
-  PHP=$(which php)
-  PHPIZE=$(which phpize)
-  PHP_CONFIG=$(which php-config)
+check_php() {
+  PHP="$(which php)"
+  PHPIZE="$(which phpize)"
+  PHP_CONFIG=""$(which php-config)""
 
   if test -x "${PHP}" -a -x "${PHPIZE}" -a -x "${PHP_CONFIG}"; then
     ${PHP} -v
     ${PHPIZE} --help
     ${PHP_CONFIG} --help
-
+    PHP_INI_SCAN_DIR=$(php --ini | grep "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
     INSTALL_PHP=1
+    if test ${FORCE_INSTALL_PHP} -eq 3; then
+      FORCE_INSTALL_PHP=1
+    fi
   else
     INSTALL_PHP=2
-    # shellcheck disable=SC2016
-    test -x "${PHP}" || echo 'no found php IN $PATH '
-    # shellcheck disable=SC2016
-    test -x "${PHPIZE}" || echo 'no found phpize IN $PATH '
-    # shellcheck disable=SC2016
-    test -x "${PHP_CONFIG}" || echo 'no found php-config IN $PATH '
-    if test ${FORCE_INSTALL_PHP} -ne 3; then
-      # 未发现 php ，也未要求安装 PHP
-      exit 0
+    if test ${FORCE_INSTALL_PHP} -eq 3; then
+      FORCE_INSTALL_PHP=2
     fi
   fi
 }
 
-install_swoole_dependencies() {
-  case "$OS" in
-  Darwin | darwin)
-    export HOMEBREW_NO_ANALYTICS=1
-    export HOMEBREW_NO_AUTO_UPDATE=1
-    export HOMEBREW_INSTALL_FROM_API=1
-    brew install wget curl libtool automake re2c llvm flex bison
-    brew install libtool gettext coreutils pkg-config cmake
-    brew install c-ares libpq unixodbc brotli curl pcre2
-    ;;
-  Linux)
-    OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
-    case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
-      yum update -y
-      { yum install -y curl; } || { echo $?; }
-      { yum install -y curl-minimal; } || { echo $?; }
-      yum install -y curl-minimal
-      yum install -y git wget ca-certificates
-      yum install -y autoconf automake libtool cmake bison gettext zip unzip xz
-      yum install -y pkg-config bzip2 flex which
-      yum install -y c-ares-devel libcurl-devel pcre-devel postgresql-devel unixODBC brotli-devel sqlite-devel openssl-devel
-
-      ;;
-    'debian' | 'ubuntu' | 'kali')
-      export DEBIAN_FRONTEND=noninteractive
-      export TZ="Etc/UTC"
-      ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
-      apt update -y
-      apt install -y git curl wget ca-certificates
-      apt install -y xz-utils autoconf automake libtool cmake bison re2c gettext coreutils lzip zip unzip
-      apt install -y pkg-config bzip2 flex p7zip libssl-dev
-
-      apt install -y gcc g++ libtool-bin autopoint
-      apt install -y linux-headers-generic
-
-      apt-get install -y libc-ares-dev libcurl4-openssl-dev
-      apt-get install -y libpcre3 libpcre3-dev libpq-dev libsqlite3-dev unixodbc-dev
-      apt-get install -y libbrotli-dev liburing-dev
-
-      ;;
-    'alpine')
-      apk update
-      apk add autoconf automake make libtool cmake bison re2c gcc g++ git curl wget pkgconf ca-certificates
-      apk add clang-dev clang lld alpine-sdk xz tar gzip zip unzip bzip2
-      apk add curl-dev c-ares-dev postgresql-dev sqlite-dev unixodbc-dev liburing-dev linux-headers
-
-      ;;
-    'arch')
-      pacman -Sy --noconfirm gcc autoconf automake make libtool cmake bison re2c gcc git curl
-      pacman -Sy --noconfirm xz automake tar gzip zip unzip bzip2 pkg-config
-      pacman -Sy --noconfirm curl postgresql-libs c-ares sqlite unixodbc liburing linux-headers
-
-      ;;
-
-    esac
-    ;;
-  *)
-    case "$(uname -r)" in
-    *microsoft* | *Microsoft*)
-      # WSL
-      ;;
-    esac
-    ;;
-  esac
-}
-
-install_php() {
+install_system_php() {
   case "$OS" in
   Darwin | darwin)
     export HOMEBREW_NO_ANALYTICS=1
@@ -221,14 +154,176 @@ install_php() {
     esac
     ;;
   esac
+  check_php
 
-  which php
-  which phpize
-  which php-config
-  php-config --help
-  PHP=$(which php)
-  PHPIZE=$(which phpize)
-  PHP_CONFIG=$(which php-config)
+}
+
+configure_environment() {
+  check_php
+  # 系统未安装PHP
+  if test ${INSTALL_PHP} -eq 2; then
+    # 要求安装PHP
+    if test ${FORCE_INSTALL_PHP} -eq 3; then
+      install_system_php
+      if test ${FORCE_INSTALL_PHP} -eq 1; then
+        echo 'INSTALL PHP SUCCESS '
+      else
+        echo 'no found php phpize php-config in $PATH'
+        echo 'please reinstall PHP or link php phpize php-config'
+        exit 0
+      fi
+    else
+      # shellcheck disable=SC2016
+      test -x "${PHP}" || echo 'no found php IN $PATH '
+      # shellcheck disable=SC2016
+      test -x "${PHPIZE}" || echo 'no found phpize IN $PATH '
+      # shellcheck disable=SC2016
+      test -x "${PHP_CONFIG}" || echo 'no found php-config IN $PATH '
+      if test ${FORCE_INSTALL_PHP} -ne 3; then
+        # 未发现 php ，也未要求安装 PHP
+        exit 0
+      fi
+    fi
+  fi
+
+}
+
+install_swoole_dependent_library() {
+  case "$OS" in
+  Darwin | darwin)
+    export HOMEBREW_NO_ANALYTICS=1
+    export HOMEBREW_NO_AUTO_UPDATE=1
+    export HOMEBREW_INSTALL_FROM_API=1
+    brew install wget curl libtool automake re2c llvm flex bison
+    brew install libtool gettext coreutils pkg-config cmake
+    brew install c-ares libpq unixodbc brotli curl pcre2
+    ;;
+  Linux)
+    OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
+    case "$OS_RELEASE" in
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
+      yum update -y
+      { yum install -y curl; } || { echo $?; }
+      { yum install -y curl-minimal; } || { echo $?; }
+      yum install -y curl-minimal
+      yum install -y git wget ca-certificates
+      yum install -y autoconf automake libtool cmake bison gettext zip unzip xz
+      yum install -y pkg-config bzip2 flex which
+      yum install -y c-ares-devel libcurl-devel pcre-devel postgresql-devel unixODBC brotli-devel sqlite-devel openssl-devel
+
+      ;;
+    'debian' | 'ubuntu' | 'kali')
+      export DEBIAN_FRONTEND=noninteractive
+      export TZ="Etc/UTC"
+      ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
+      apt update -y
+      apt install -y git curl wget ca-certificates
+      apt install -y xz-utils autoconf automake libtool cmake bison re2c gettext coreutils lzip zip unzip
+      apt install -y pkg-config bzip2 flex p7zip libssl-dev
+
+      apt install -y gcc g++ libtool-bin autopoint
+      apt install -y linux-headers-generic
+
+      apt-get install -y libc-ares-dev libcurl4-openssl-dev
+      apt-get install -y libpcre3 libpcre3-dev libpq-dev libsqlite3-dev unixodbc-dev
+      apt-get install -y libbrotli-dev liburing-dev
+
+      ;;
+    'alpine')
+      apk update
+      apk add autoconf automake make libtool cmake bison re2c gcc g++ git curl wget pkgconf ca-certificates
+      apk add clang-dev clang lld alpine-sdk xz tar gzip zip unzip bzip2
+      apk add curl-dev c-ares-dev postgresql-dev sqlite-dev unixodbc-dev liburing-dev linux-headers
+
+      ;;
+    'arch')
+      pacman -Sy --noconfirm gcc autoconf automake make libtool cmake bison re2c gcc git curl
+      pacman -Sy --noconfirm xz automake tar gzip zip unzip bzip2 pkg-config
+      pacman -Sy --noconfirm curl postgresql-libs c-ares sqlite unixodbc liburing linux-headers
+
+      ;;
+
+    esac
+    ;;
+  *)
+    case "$(uname -r)" in
+    *microsoft* | *Microsoft*)
+      # WSL
+      ;;
+    esac
+    ;;
+  esac
+}
+
+install_swoole_dependent_ext() {
+  # swoole 依赖 openssl  、curl、 sockets、 pdo  扩展
+  local EXTENSION_OPENSSL_EXISTS=0
+  local EXTENSION_CURL_EXISTS=0
+  local EXTENSION_SOCKETS_EXISTS=0
+  local EXTENSION_MYSQLND_EXISTS=0
+  local EXTENSION_PDO_EXISTS=0
+
+  php --ri openssl >/dev/null && EXTENSION_OPENSSL_EXISTS=1
+  php --ri curl >/dev/null && EXTENSION_CURL_EXISTS=1
+  php --ri sockets >/dev/null && EXTENSION_SOCKETS_EXISTS=1
+  php --ri mysqlnd >/dev/null && EXTENSION_MYSQLND_EXISTS=1
+  php --ri pdo >/dev/null && EXTENSION_PDO_EXISTS=1
+
+  # shellcheck disable=SC2046
+  if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-configure)" -a -x "$(which docker-php-ext-enable)"; then
+    # php offical 容器中 启用被 swoole 依赖的扩展
+    # 准备编译环境
+    docker-php-source extract
+
+    test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && docker-php-ext-configure openssl && docker-php-ext-install openssl && docker-php-ext-enable openssl
+    test ${EXTENSION_CURL_EXISTS} -eq 0 && docker-php-ext-configure curl && docker-php-ext-install curl && docker-php-ext-enable curl
+    test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && docker-php-ext-configure sockets && docker-php-ext-install sockets && docker-php-ext-enable sockets
+    test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && docker-php-ext-configure mysqlnd && docker-php-ext-install mysqlnd && docker-php-ext-enable mysqlnd
+    test ${EXTENSION_PDO_EXISTS} -eq 0 && docker-php-ext-configure pdo && docker-php-ext-install pdo && docker-php-ext-enable pdo
+
+    docker-php-source delete
+  else
+    if [ "$OS" == 'Linux' ]; then
+      # arch 系统下 php 的 socket 扩展 需要源码编译启用
+      local OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
+      if [ "${OS_RELEASE}" == 'arch' ]; then
+        mkdir -p /tmp/build
+        local PHP_TMP_VERSION="$(php-config --version)"
+        local PHP_TMP_DIR=/tmp/build/php-src-${PHP_TMP_VERSION}
+        git clone -b "php-${PHP_TMP_VERSION}" --depth=1 https://github.com/php/php-src.git ${PHP_TMP_DIR}
+        cd ${PHP_TMP_DIR}/ext/sockets
+        phpize
+        ./configure --with-php-config="${PHP_CONFIG}"
+        make install
+
+        if [ -n "${PHP_INI_SCAN_DIR}" ] && [ -d "${PHP_INI_SCAN_DIR}" ]; then
+
+          local SOCKETS_INI_FILE=${PHP_INI_SCAN_DIR}/10-sockets.ini
+          tee ${SOCKETS_INI_FILE} <<EOF
+extension=sockets.so
+EOF
+
+        fi
+        # shellcheck disable=SC2164
+        cd ${__DIR__}
+        # test -d $PHP_TMP_DIR && rm -rf $PHP_TMP_DIR
+        php --ri sockets >/dev/null && EXTENSION_SOCKETS_EXISTS=1
+      fi
+    fi
+
+    local MESSAGES=' please manual enable extension : '
+    local SUM=0
+    test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  openssl" && ((SUM++))
+    test ${EXTENSION_CURL_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  curl" && ((SUM++))
+    test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && MESSAGES="${MESSAGES} sockets" && ((SUM++))
+    test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  mysqlnd " && ((SUM++))
+    test ${EXTENSION_PDO_EXISTS} -eq 0 && MESSAGES="${MESSAGES} pdo  " && ((SUM++))
+    if test $SUM -gt 0; then
+      echo $MESSAGES
+      exit 0
+    fi
+  fi
+
 }
 
 install_swoole() {
@@ -408,12 +503,6 @@ install_swoole() {
 
   # 创建 swoole.ini
 
-  local PHP_INI_SCAN_DIR=$(php --ini | grep "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
-  if [ $? -ne 0 ]; then
-    echo $?
-    exit 3
-  fi
-
   if [ -n "${PHP_INI_SCAN_DIR}" ] && [ -d "${PHP_INI_SCAN_DIR}" ]; then
     local SUDO=''
     if [ ! -w "${PHP_INI_SCAN_DIR}" ]; then
@@ -442,106 +531,12 @@ EOF
 }
 
 install() {
-  check_environment
-  if test ${INSTALL_PHP} -eq 2 -a ${FORCE_INSTALL_PHP} -eq 3; then
-    # 系统未安装PHP ，要求安装PHP
-    install_php
-    if test -x "$(which php)"; then
-      echo 'INSTALL PHP SUCCESS '
-      $(which php) -v
-    else
-      echo 'no found php phpize php-config in $PATH'
-      echo 'please reinstall PHP or link php phpize php-config'
-      exit 3
-    fi
-  fi
-
+  configure_environment
   if test ${INSTALL_PHP} -eq 1; then
-    # 系统已经安装了PHP, 不再执行安装 PHP ，启用被swoole依赖的扩展
-    local EXTENSION_OPENSSL_EXISTS=0
-    local EXTENSION_CURL_EXISTS=0
-    local EXTENSION_SOCKETS_EXISTS=0
-    local EXTENSION_MYSQLND_EXISTS=0
-    local EXTENSION_PDO_EXISTS=0
-
-    php --ri openssl >/dev/null && EXTENSION_OPENSSL_EXISTS=1
-    php --ri curl >/dev/null && EXTENSION_CURL_EXISTS=1
-    php --ri sockets >/dev/null && EXTENSION_SOCKETS_EXISTS=1
-    php --ri mysqlnd >/dev/null && EXTENSION_MYSQLND_EXISTS=1
-    php --ri pdo >/dev/null && EXTENSION_PDO_EXISTS=1
-
-    # shellcheck disable=SC2046
-    if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-configure)" -a -x "$(which docker-php-ext-enable)"; then
-      # php 容器中 启用被 swoole 依赖的扩展
-      # 准备编译环境
-      install_swoole_dependencies
-      docker-php-source extract
-
-      test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && docker-php-ext-configure openssl && docker-php-ext-install openssl && docker-php-ext-enable openssl
-      test ${EXTENSION_CURL_EXISTS} -eq 0 && docker-php-ext-configure curl && docker-php-ext-install curl && docker-php-ext-enable curl
-      test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && docker-php-ext-configure sockets && docker-php-ext-install sockets && docker-php-ext-enable sockets
-      test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && docker-php-ext-configure mysqlnd && docker-php-ext-install mysqlnd && docker-php-ext-enable mysqlnd
-      test ${EXTENSION_PDO_EXISTS} -eq 0 && docker-php-ext-configure pdo && docker-php-ext-install pdo && docker-php-ext-enable pdo
-
-      docker-php-source delete
-    else
-      local MESSAGES=' please manual enable extension : '
-      local SUM=0
-      test ${EXTENSION_OPENSSL_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  openssl" && ((SUM++))
-      test ${EXTENSION_CURL_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  curl" && ((SUM++))
-      test ${EXTENSION_SOCKETS_EXISTS} -eq 0 && MESSAGES="${MESSAGES} sockets" && ((SUM++))
-      test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  mysqlnd " && ((SUM++))
-      test ${EXTENSION_PDO_EXISTS} -eq 0 && MESSAGES="${MESSAGES} pdo  " && ((SUM++))
-
-      if [ "$OS" == 'Linux' ]; then
-        OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
-        if [ "${OS_RELEASE}" == 'arch' ]; then
-          install_swoole_dependencies
-          mkdir -p /tmp/build
-          local PHP_TMP_VERSION="$(php-config --version)"
-          local PHP_TMP_DIR=/tmp/build/php-src-${PHP_TMP_VERSION}
-          git clone -b "php-${PHP_TMP_VERSION}" --depth=1 https://github.com/php/php-src.git ${PHP_TMP_DIR}
-          cd ${PHP_TMP_DIR}/ext/sockets
-          phpize
-          ./configure --with-php-config="${PHP_CONFIG}"
-          make install
-          local PHP_INI_SCAN_DIR=$(php --ini | grep "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
-          if [ $? -ne 0 ]; then
-            echo $?
-            exit 3
-          fi
-
-          if [ -n "${PHP_INI_SCAN_DIR}" ] && [ -d "${PHP_INI_SCAN_DIR}" ]; then
-            local SUDO=''
-            if [ ! -w "${PHP_INI_SCAN_DIR}" ]; then
-              SUDO='sudo'
-            fi
-
-            local SOCKETS_INI_FILE=${PHP_INI_SCAN_DIR}/10-sockets.ini
-            # shellcheck disable=SC2046
-            # 解决 php official 容器中 扩展加载顺序问题
-            if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then
-              test -f ${SOCKETS_INI_FILE} && rm -f ${SOCKETS_INI_FILE}
-              SOCKETS_INI_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-sockets-10.ini
-            fi
-            ${SUDO} tee ${SOCKETS_INI_FILE} <<EOF
-extension=sockets.so
-EOF
-
-          fi
-          cd ${__DIR__}
-
-        fi
-      fi
-      if test $SUM -gt 0; then
-        echo $MESSAGES
-        exit 0
-      fi
-    fi
+    install_swoole_dependent_library
+    install_swoole_dependent_ext
+    install_swoole
   fi
-  install_swoole_dependencies
-  install_swoole
-
 }
 
 # 安装 入口
