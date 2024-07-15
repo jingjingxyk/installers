@@ -31,21 +31,34 @@ curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/install.sh | b
 
 ```
 
+## rhel 系 、alpine、archlinux  解决 `which` command no found
+
+```bash
+
+curl -fsSL  https://github.com/swoole/installers/blob/main/init.sh?raw=true | bash
+
+# mirror
+
+curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/init.sh  | bash
+
+```
+
 ## 支持的操作系统
 
-| 操作系统                                            | 支持情况 |
-|-------------------------------------------------|------|
-| [debian](https://www.debian.org/)               | ✅    |
-| [ubuntu](https://ubuntu.com/)                   | ✅    |
-| [rockylinux](https://rockylinux.org/)           | ✅    |
-| [almalinux](https://almalinux.org/)             | ✅    |
-| [alinux](https://www.aliyun.com/product/alinux) | ✅    |
-| [anolis](https://openanolis.cn/anolisos)        | ✅    |
-| [fedora ](https://fedoraproject.org/)           | ✅    |
-| [alpine](https://www.alpinelinux.org/)          | ✅    |
-| [kali](https://www.kali.org/)                   | ✅    |
-| [macos](https://www.apple.com/)                 | ✅    |
-| wsl                                             |      |
-| FreeBSD 13                                      |      |
-| [OpenEuler](https://www.openeuler.org/)         | ✅    |
-| Huawei Cloud EulerOS                            | ✅    |
+| 操作系统                                                         | 支持情况 |
+|--------------------------------------------------------------|------|
+| [debian](https://www.debian.org/)                            | ✅    |
+| [ubuntu](https://ubuntu.com/)                                | ✅    |
+| [rockylinux](https://rockylinux.org/)                        | ✅    |
+| [almalinux](https://almalinux.org/)                          | ✅    |
+| [Alibaba cloud liunx](https://www.aliyun.com/product/alinux) | ✅    |
+| [anolis](https://openanolis.cn/anolisos)                     | ✅    |
+| [fedora ](https://fedoraproject.org/)                        | ✅    |
+| [alpine](https://www.alpinelinux.org/)                       | ✅    |
+| [kali](https://www.kali.org/)                                | ✅    |
+| [macos](https://www.apple.com/)                              | ✅    |
+| wsl                                                          |      |
+| FreeBSD 13                                                   |      |
+| [OpenEuler](https://www.openeuler.org/)                      | ✅    |
+| Huawei Cloud EulerOS                                         | ✅    |
+| [archlinux](https://archlinux.org/)                          | ✅    |
