@@ -35,3 +35,6 @@ env ASSUME_ALWAYS_YES=YES pkg install llvm
 # 版本需要大于等于 13
 # https://mirrors.ustc.edu.cn/freebsd-pkg/
 # https://pkg.freebsd.org/
+
+# freebsd-update fetch
+# freebsd-update install
