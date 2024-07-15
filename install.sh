@@ -17,17 +17,19 @@ fi
 CPU_LOGICAL_PROCESSORS=4
 MIRROR='' # swoole 源码镜像源
 ENABLE_TEST=0
-VERSION_LATEST=0        # 保持源码最新，每次执行都需要下载源码
-X_SWOOLE_VERSION=''     # 指定 swoole 版本
-SWOOLE_VERSION='master' # 默认 swoole 版本
-SWOOLE_DEBUG=0          # 启用 swoole debug 编译参数
-INSTALL_PHP=0           # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
-FORCE_INSTALL_PHP=0     # 0 未设置、3 要求安装PHP 、 4 执行安装 =》 安装以后状态 1 成功安装PHP , 2 未成功安装PHP
+VERSION_LATEST=0                                 # 保持源码最新，每次执行都需要下载源码
+SWOOLE_SRC='https://gitee.com/swoole/swoole.git' # swoole 源码地址
+X_SWOOLE_VERSION=''                              # 指定 swoole 版本
+SWOOLE_VERSION='master'                          # 默认 swoole 版本
+SWOOLE_DEBUG=0                                   # 启用 swoole debug 编译参数
+INSTALL_PHP=0                                    # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
+FORCE_INSTALL_PHP=0                              # 0 未设置、3 要求安装PHP 、 4 执行安装 =》 安装以后状态 1 成功安装PHP , 2 未成功安装PHP
 
-PHP=''              # php     位置
-PHPIZE=''           # phpize  位置
-PHP_CONFIG=''       # php-config 位置
-PHP_INI_SCAN_DIR='' # php 扫描配置目录
+PHP_SRC='https://github.com/php/php-src.git' # php 源码地址
+PHP=''                                       # php     位置
+PHPIZE=''                                    # phpize  位置
+PHP_CONFIG=''                                # php-config 位置
+PHP_INI_SCAN_DIR=''                          # php 扫描配置目录
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -60,6 +62,15 @@ while [ $# -gt 0 ]; do
   esac
   shift $(($# > 0 ? 1 : 0))
 done
+
+case "$MIRROR" in
+china)
+  SWOOLE_SRC="https://gitee.com/swoole/swoole.gi"
+  PHP_SRC="https://gitee.com/mirrors/php-src.git"
+  ;;
+*) ;;
+
+esac
 
 check_php() {
   PHP="$(which php)"
@@ -286,12 +297,15 @@ install_swoole_dependent_ext() {
   else
     if [ "$OS" == 'Linux' ]; then
       # arch 系统下 php 的 socket 扩展 需要源码编译启用
+      # shellcheck disable=SC2155
       local OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
       if [ "${OS_RELEASE}" == 'arch' ]; then
         mkdir -p /tmp/build
+        # shellcheck disable=SC2155
         local PHP_TMP_VERSION="$(php-config --version)"
         local PHP_TMP_DIR=/tmp/build/php-src-${PHP_TMP_VERSION}
-        git clone -b "php-${PHP_TMP_VERSION}" --depth=1 https://github.com/php/php-src.git ${PHP_TMP_DIR}
+        git clone -b "php-${PHP_TMP_VERSION}" --depth=1 ${PHP_SRC} ${PHP_TMP_DIR}
+        # shellcheck disable=SC2164
         cd ${PHP_TMP_DIR}/ext/sockets
         phpize
         ./configure --with-php-config="${PHP_CONFIG}"
@@ -371,21 +385,15 @@ install_swoole() {
 
   # 保持源码最新
   test $VERSION_LATEST -eq 1 && test -d swoole-src && rm -rf swoole-src
-
-  case "$MIRROR" in
-  china)
-    test -d swoole-src || git clone -b $SWOOLE_VERSION --single-branch --depth=1 https://gitee.com/swoole/swoole.git swoole-src
-    ;;
-  *)
-    test -d swoole-src || git clone -b $SWOOLE_VERSION --single-branch --depth=1 https://github.com/swoole/swoole-src.git
-    ;;
-  esac
-  if [ $? -ne 0 ]; then
-    echo $?
-    exit 3
+  # 执行下载 swoole 源码
+  if test ! -d swoole-src; then
+    git clone -b $SWOOLE_VERSION --single-branch --depth=1 ${SWOOLE_SRC} swoole-src
+    if [ $? -ne 0 ]; then
+      echo $?
+      exit 3
+    fi
+    echo $SWOOLE_VERSION >swoole-src/x-swoole-version
   fi
-
-  echo $SWOOLE_VERSION >swoole-src/x-swoole-version
 
   local SWOOLE_ODBC_OPTIONS=""
   local SWOOLE_IO_URING=''
@@ -450,6 +458,7 @@ install_swoole() {
 
   esac
 
+  # shellcheck disable=SC2164
   cd /tmp/build/swoole-src
 
   test -f ext-src/.libs/php_swoole.o && make clean
@@ -490,8 +499,10 @@ install_swoole() {
   fi
 
   if test $ENABLE_TEST -eq 1; then
+    # shellcheck disable=SC2164
     cd /tmp/build/swoole-src/tests/include/lib/
     composer install
+    # shellcheck disable=SC2164
     cd /tmp/build/swoole-src/
     make test
   fi
