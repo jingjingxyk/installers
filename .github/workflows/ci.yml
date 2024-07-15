@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: native ubuntu install swoole
         run: |
           sudo sh init.sh
@@ -43,7 +43,7 @@ jobs:
           - php:8.3-zts-bullseye
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: install-swoole
         uses: addnab/docker-run-action@v3
         with:
@@ -64,7 +64,7 @@ jobs:
           - macos-13
           - macos-14
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: install swoole
         run: |
           bash install.sh --install-php 1
