@@ -68,9 +68,14 @@ check_environment() {
     INSTALL_PHP=1
   else
     INSTALL_PHP=2
-    echo 'no found PHP IN $PATH '
+    # shellcheck disable=SC2016
+    test -x "${PHP}" || echo 'no found php IN $PATH '
+    # shellcheck disable=SC2016
+    test -x "${PHPIZE}" || echo 'no found phpize IN $PATH '
+    # shellcheck disable=SC2016
+    test -x "${PHP_CONFIG}" || echo 'no found php-config IN $PATH '
     if test ${FORCE_INSTALL_PHP} -ne 3; then
-      # 未发现 php ，也不需要自动安装 PHP
+      # 未发现 php ，也未要求安装 PHP
       exit 0
     fi
   fi
@@ -429,8 +434,8 @@ install() {
       echo 'INSTALL PHP SUCCESS '
       $(which php) -v
     else
-      echo 'no found PHP in $PATH'
-      echo 'please reinstall PHP '
+      echo 'no found php phpize php-config in $PATH'
+      echo 'please reinstall PHP or link php phpize php-config'
       exit 3
     fi
   fi
