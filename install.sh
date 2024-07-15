@@ -163,7 +163,8 @@ install_php() {
     case "$OS_RELEASE" in
     'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
       yum update -y
-      yum install -y php-cli php-pear php-devel php-curl php-intl
+      yum install -y php-cli  php-devel php-curl php-intl
+      { yum install -y php-pear; } || { echo $?; }
       { yum install -y php-json; } || { echo $?; }
       yum install -y php-mbstring php-tokenizer php-xml
       yum install -y php-pdo php-mysqlnd
