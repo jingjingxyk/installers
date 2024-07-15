@@ -34,7 +34,7 @@ jobs:
           - alpine:3.18
           - rockylinux:9.3
           - fedora:41
-          #  - archlinux:latest
+          - archlinux:latest
           - php:8.3-zts-alpine3.20
           - php:8.2-zts-alpine3.20
           - php:8.1-zts-alpine3.20
