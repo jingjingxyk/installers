@@ -50,7 +50,7 @@ jobs:
           image: ${{ matrix.container_image }}
           options: -v ${{ github.workspace }}:/work -w /work
           run: |
-            sh .github/workflows/init.sh
+            sh init.sh
             bash install.sh --install-php 1
 
   macos:
