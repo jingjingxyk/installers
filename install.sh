@@ -22,7 +22,7 @@ X_SWOOLE_VERSION=''     # 指定 swoole 版本
 SWOOLE_VERSION='master' # 默认 swoole 版本
 SWOOLE_DEBUG=0          # 启用 swoole debug 编译参数
 INSTALL_PHP=0           # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
-FORCE_INSTALL_PHP=0     # 0 未设置、3 要求安装PHP =》 安装以后状态 1 成功安装PHP , 2 未成功安装PHP
+FORCE_INSTALL_PHP=0     # 0 未设置、3 要求安装PHP 、 4 执行安装 =》 安装以后状态 1 成功安装PHP , 2 未成功安装PHP
 
 PHP=''              # php     位置
 PHPIZE=''           # phpize  位置
@@ -72,12 +72,12 @@ check_php() {
     ${PHP_CONFIG} --help
     PHP_INI_SCAN_DIR=$(php --ini | grep "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
     INSTALL_PHP=1
-    if test ${FORCE_INSTALL_PHP} -eq 3; then
+    if test ${FORCE_INSTALL_PHP} -eq 4; then
       FORCE_INSTALL_PHP=1
     fi
   else
     INSTALL_PHP=2
-    if test ${FORCE_INSTALL_PHP} -eq 3; then
+    if test ${FORCE_INSTALL_PHP} -eq 4; then
       FORCE_INSTALL_PHP=2
     fi
   fi
@@ -164,6 +164,7 @@ configure_environment() {
   if test ${INSTALL_PHP} -eq 2; then
     # 要求安装PHP
     if test ${FORCE_INSTALL_PHP} -eq 3; then
+      FORCE_INSTALL_PHP=4
       install_system_php
       if test ${FORCE_INSTALL_PHP} -eq 1; then
         echo 'INSTALL PHP SUCCESS '
