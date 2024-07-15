@@ -500,7 +500,7 @@ install() {
           local PHP_TMP_VERSION="$(php-config --version)"
           local PHP_TMP_DIR=/tmp/build/php-src-${PHP_TMP_VERSION}
           git clone -b "php-${PHP_TMP_VERSION}" --depth=1 https://github.com/php/php-src.git ${PHP_TMP_DIR}
-          cd ${PHP_TMP_DIR}/sockets
+          cd ${PHP_TMP_DIR}/ext/sockets
           phpize
           ./configure --with-php-config="${PHP_CONFIG}"
           make intall
