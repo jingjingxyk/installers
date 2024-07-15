@@ -10,7 +10,7 @@ ls -lh `php --ini | grep  "Scan for additional .ini files in:" | awk -F 'in:' '{
 
     https://github.com/swoole/swoole-src/issues/4085
 
-    编译php 时 扫描目录配置 --with-config-file-scan-dir
+    编译 php 时 扫描目录配置 --with-config-file-scan-dir
 
 ## 查看配置所在目录
 
@@ -45,4 +45,6 @@ php --ini
 php --ri swoole
 
 ```
+
+
 

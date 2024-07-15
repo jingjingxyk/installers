@@ -6,7 +6,7 @@
 
 ## --install-php
 
-    系统未安装 PHP , 调用系统包管理工具 安装 PHP
+    系统未安装 PHP , 调用系统包管理工具 安装 PHP ，已安装 PHP 将不会执行安装 PHP
 
 ## --debug
 
