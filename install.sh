@@ -18,7 +18,7 @@ CPU_LOGICAL_PROCESSORS=4
 MIRROR='' # swoole 源码镜像源
 ENABLE_TEST=0
 VERSION_LATEST=0                                 # 保持源码最新，每次执行都需要下载源码
-SWOOLE_SRC='https://gitee.com/swoole/swoole.git' # swoole 源码地址
+SWOOLE_SRC='https://github.com/swoole/swoole-src.git' # swoole 源码地址
 X_SWOOLE_VERSION=''                              # 指定 swoole 版本
 SWOOLE_VERSION='master'                          # 默认 swoole 版本
 SWOOLE_DEBUG=0                                   # 启用 swoole debug 编译参数
@@ -65,7 +65,7 @@ done
 
 case "$MIRROR" in
 china)
-  SWOOLE_SRC="https://gitee.com/swoole/swoole.gi"
+  SWOOLE_SRC="https://gitee.com/swoole/swoole.git"
   PHP_SRC="https://gitee.com/mirrors/php-src.git"
   ;;
 *) ;;
