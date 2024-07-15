@@ -67,7 +67,6 @@ case "$MIRROR" in
 china)
   SWOOLE_SRC="https://gitee.com/swoole/swoole.gi"
   PHP_SRC="https://gitee.com/mirrors/php-src.git"
-  INIT_FILE='https://gitee.com/jingjingxyk/swoole-install/raw/main/init.sh'
   ;;
 *) ;;
 
