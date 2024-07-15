@@ -420,14 +420,14 @@ install_swoole() {
       SUDO='sudo'
     fi
 
-    local SWOOLE_INIT_FILE=${PHP_INI_SCAN_DIR}/90-swoole.ini
+    local SWOOLE_INI_FILE=${PHP_INI_SCAN_DIR}/90-swoole.ini
     # shellcheck disable=SC2046
     # 解决 php official 容器中 扩展加载顺序问题
     if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then
-      test -f ${SWOOLE_INIT_FILE} && rm -f ${SWOOLE_INIT_FILE}
-      SWOOLE_INIT_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-90-swoole.ini
+      test -f ${SWOOLE_INI_FILE} && rm -f ${SWOOLE_INI_FILE}
+      SWOOLE_INI_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-90-swoole.ini
     fi
-    ${SUDO} tee ${SWOOLE_INIT_FILE} <<EOF
+    ${SUDO} tee ${SWOOLE_INI_FILE} <<EOF
 extension=swoole.so
 swoole.use_shortname=On
 EOF
@@ -504,8 +504,31 @@ install() {
           cd ${PHP_TMP_DIR}/ext/sockets
           phpize
           ./configure --with-php-config="${PHP_CONFIG}"
-          make intall
+          make install
+          local PHP_INI_SCAN_DIR=$(php --ini | grep "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
+          if [ $? -ne 0 ]; then
+            echo $?
+            exit 3
+          fi
 
+          if [ -n "${PHP_INI_SCAN_DIR}" ] && [ -d "${PHP_INI_SCAN_DIR}" ]; then
+            local SUDO=''
+            if [ ! -w "${PHP_INI_SCAN_DIR}" ]; then
+              SUDO='sudo'
+            fi
+
+            local SOCKETS_INI_FILE=${PHP_INI_SCAN_DIR}/10-sockets.ini
+            # shellcheck disable=SC2046
+            # 解决 php official 容器中 扩展加载顺序问题
+            if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then
+              test -f ${SOCKETS_INI_FILE} && rm -f ${SOCKETS_INI_FILE}
+              SOCKETS_INI_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-10-sockets.ini
+            fi
+            ${SUDO} tee ${SOCKETS_INI_FILE} <<EOF
+extension=sockets.so
+EOF
+
+          fi
           cd ${__DIR__}
 
         fi
