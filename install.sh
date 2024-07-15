@@ -94,7 +94,7 @@ install_swoole_dependencies() {
     brew install c-ares libpq unixodbc brotli curl pcre2
     ;;
   Linux)
-    OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
+    OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
     case "$OS_RELEASE" in
     'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
       yum update -y
@@ -159,7 +159,7 @@ install_php() {
     brew install php
     ;;
   Linux)
-    OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
+    OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
     case "$OS_RELEASE" in
     'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
       yum update -y
@@ -291,10 +291,10 @@ install_swoole() {
 
   echo $SWOOLE_VERSION >swoole-src/x-swoole-version
 
-  SWOOLE_ODBC_OPTIONS=""
-  SWOOLE_IO_URING=''
-  SWOOLE_DEBUG_OPTIONS=''
-  SWOOLE_THREAD_OPTION=''
+  local SWOOLE_ODBC_OPTIONS=""
+  local SWOOLE_IO_URING=''
+  local SWOOLE_DEBUG_OPTIONS=''
+  local SWOOLE_THREAD_OPTION=''
 
   if [ $SWOOLE_DEBUG -eq 1 ]; then
     SWOOLE_DEBUG_OPTIONS=' --enable-debug --enable-debug-log --enable-trace-log '
@@ -327,7 +327,7 @@ install_swoole() {
     ;;
   Linux)
     CPU_LOGICAL_PROCESSORS=$(grep "processor" /proc/cpuinfo | sort -u | wc -l)
-    OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
+    OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
     case "$OS_RELEASE" in
     'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
       SWOOLE_ODBC_OPTIONS=""                                                      # 缺少 unixODBC-devel
@@ -408,19 +408,19 @@ install_swoole() {
 
   # 创建 swoole.ini
 
-  PHP_INI_SCAN_DIR=$(php --ini | grep "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
+  local PHP_INI_SCAN_DIR=$(php --ini | grep "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
   if [ $? -ne 0 ]; then
     echo $?
     exit 3
   fi
 
   if [ -n "${PHP_INI_SCAN_DIR}" ] && [ -d "${PHP_INI_SCAN_DIR}" ]; then
-    SUDO=''
+    local SUDO=''
     if [ ! -w "${PHP_INI_SCAN_DIR}" ]; then
       SUDO='sudo'
     fi
 
-    SWOOLE_INIT_FILE=${PHP_INI_SCAN_DIR}/90-swoole.ini
+    local SWOOLE_INIT_FILE=${PHP_INI_SCAN_DIR}/90-swoole.ini
     # shellcheck disable=SC2046
     # 解决 php official 容器中 扩展加载顺序问题
     if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then
@@ -493,6 +493,22 @@ install() {
       test ${EXTENSION_MYSQLND_EXISTS} -eq 0 && MESSAGES="${MESSAGES}  mysqlnd " && ((SUM++))
       test ${EXTENSION_PDO_EXISTS} -eq 0 && MESSAGES="${MESSAGES} pdo  " && ((SUM++))
 
+      if [ "$OS" == 'Linux' ]; then
+        OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
+        if [ "${OS_RELEASE}" == 'arch' ]; then
+          mkdir -p /tmp/build
+          local PHP_TMP_VERSION="$(php-config --version)"
+          local PHP_TMP_DIR=/tmp/build/php-src-${PHP_TMP_VERSION}
+          git clone -b "php-${PHP_TMP_VERSION}" --depth=1 https://github.com/php/php-src.git ${PHP_TMP_DIR}
+          cd ${PHP_TMP_DIR}/sockets
+          phpize
+          ./configure --with-php-config="${PHP_CONFIG}"
+          make intall
+
+          cd ${__DIR__}
+
+        fi
+      fi
       if test $SUM -gt 0; then
         echo $MESSAGES
         exit 0

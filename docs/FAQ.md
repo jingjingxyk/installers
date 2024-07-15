@@ -29,7 +29,7 @@ php --ini | grep  ".ini files"
 PHP_INI_SCAN_DIR=$(php --ini | grep  "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
 
 if [ -n "${PHP_INI_SCAN_DIR}" ] && [ -d "${PHP_INI_SCAN_DIR}" ]; then
-  SUDO=''
+  local SUDO=''
   if [ ! -w "${PHP_INI_SCAN_DIR}" ] ; then
     SUDO='sudo'
   fi
