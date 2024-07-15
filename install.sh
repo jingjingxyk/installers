@@ -425,7 +425,7 @@ install_swoole() {
     # 解决 php official 容器中 扩展加载顺序问题
     if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then
       test -f ${SWOOLE_INI_FILE} && rm -f ${SWOOLE_INI_FILE}
-      SWOOLE_INI_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-90-swoole.ini
+      SWOOLE_INI_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-swoole-90.ini
     fi
     ${SUDO} tee ${SWOOLE_INI_FILE} <<EOF
 extension=swoole.so
@@ -522,7 +522,7 @@ install() {
             # 解决 php official 容器中 扩展加载顺序问题
             if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then
               test -f ${SOCKETS_INI_FILE} && rm -f ${SOCKETS_INI_FILE}
-              SOCKETS_INI_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-10-sockets.ini
+              SOCKETS_INI_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-sockets-10.ini
             fi
             ${SUDO} tee ${SOCKETS_INI_FILE} <<EOF
 extension=sockets.so
