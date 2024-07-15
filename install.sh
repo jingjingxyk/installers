@@ -201,6 +201,9 @@ install_php() {
       ;;
     esac
     ;;
+  FreeBSD)
+
+    ;;
   *)
     case "$(uname -r)" in
     *microsoft* | *Microsoft*)
