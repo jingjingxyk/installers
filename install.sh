@@ -94,7 +94,7 @@ install_swoole_dependencies() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
       yum update -y
       { yum install -y curl; } || { echo $?; }
       { yum install -y curl-minimal; } || { echo $?; }
@@ -159,7 +159,7 @@ install_php() {
   Linux)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
       yum update -y
       yum install -y php-cli php-pear php-devel php-curl php-intl
       { yum install -y php-json; } || { echo $?; }
@@ -314,8 +314,8 @@ install_swoole() {
     CPU_LOGICAL_PROCESSORS=$(grep "processor" /proc/cpuinfo | sort -u | wc -l)
     OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
     case "$OS_RELEASE" in
-    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
-      SWOOLE_ODBC_OPTIONS=""                                              # 缺少 unixODBC-devel
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
+      SWOOLE_ODBC_OPTIONS=""                                                      # 缺少 unixODBC-devel
       ;;
     'debian' | 'ubuntu' | 'kali') # 'raspbian' | 'deeping'| 'uos' | 'kylin'
       if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then

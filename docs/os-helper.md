@@ -24,6 +24,7 @@
 1. [Alibaba cloud liunx(ID='alinux')](https://www.aliyun.com/product/alinux)
 1. [Anolis OS 龙蜥(ID='anolis')](https://openanolis.cn/anolisos)
 1. [OpenEuler OS(ID='openEuler')](https://www.openeuler.org/)
+1. [Huawei Cloud EulerOS(ID="hce")]()
 1. [Oracle Linux Server (ID='ol')](https://docs.oracle.com/en/operating-systems/oracle-linux/software-management/sfw-mgmt-HowOracleDistributesSoftwarePackages.html#how-oracle-distributes-software)
 1. [Amazon Linux AMI(ID='amzn')](http://aws.amazon.com/amazon-linux-ami/)
 
