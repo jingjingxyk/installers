@@ -48,7 +48,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ${{ matrix.container_image }}
-          options: -v ${{ github.workspace }}:/work -w /work -e GITHUB_ACTIONS="true"
+          options: -v ${{ github.workspace }}:/work -w /work -e GITHUB_ACTIONS=true
           run: |
             set -x
             sh init.sh
