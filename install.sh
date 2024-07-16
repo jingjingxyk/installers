@@ -581,7 +581,7 @@ check_python_exits() {
   # shellcheck disable=SC2155
   if test -x "$(which python)" -a -x "$(which python-config)"; then
     # reference https://semver.org/
-    local PYTON3_MAJOR="$(python3 -V | awk '{ print $2 }' | awk -F '.' '{ print $1 }')"
+    local PYTON3_MAJOR="$(python -V | awk '{ print $2 }' | awk -F '.' '{ print $1 }')"
     if [ "${PYTON3_MAJOR}" == "3" ]; then
       mkdir -p /tmp/python3/bin/
       ln -s "$(which python)" /tmp/python3/bin/python3
