@@ -574,7 +574,7 @@ EOF
 }
 
 install_system_python3() {
-  curl -fsSL ${INIT_SCRIPT_SRC} | bash -s -- --install-python3 1
+  curl -fSL ${INIT_SCRIPT_SRC} | bash -s -- --install-python3 1
 }
 
 check_python_exits() {
@@ -605,7 +605,7 @@ check_python_exits() {
       check_python_exits
     fi
     echo 'no found python3 python3-config in $PATH '
-    echo 'please install PHP or link python3 python3-config '
+    echo 'please install python3 or link python3 python3-config '
     exit 3
 
   fi

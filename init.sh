@@ -36,22 +36,22 @@ install_python3() {
     case "$OS_RELEASE" in
     'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
       yum install -y update
-      yum install -y python3
+      yum install -y python3 python3-devel
       ;;
     'debian' | 'ubuntu' | 'kali')
       export DEBIAN_FRONTEND=noninteractive
       export TZ="Etc/UTC"
       ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
       apt update -y
-      apt install -y python3 python3-pip
+      apt install -y python3 python3-dev
 
       ;;
     'alpine')
       apk update
-      apk add python3 py3-pip
+      apk add python3 python3-dev
       ;;
     'arch')
-      pacman -Sy --noconfirm python python-pip
+      pacman -Sy --noconfirm python3
 
       ;;
 
