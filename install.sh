@@ -585,7 +585,7 @@ check_python_exits() {
     if [ "${PYTON3_MAJOR}" == "3" ]; then
       mkdir -p /tmp/python3/bin/
       ln -s "$(which python)" /tmp/python3/bin/python3
-      ln -s "$(which python)" /tmp/python3/bin/python3-config
+      ln -s "$(which python-config)" /tmp/python3/bin/python3-config
       export PATH=/tmp/python3/bin/:$PATH
     fi
   fi

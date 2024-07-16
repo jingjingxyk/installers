@@ -31,6 +31,11 @@ curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/install.sh | b
 
 ```
 
+## $PATH 环境变量 未检测到php phpize php-config
+
+通过临时修改 $PATH 环境变量,例子：
+` export PATH=php-install-dir/bin/:$PATH`
+
 ## rhel 系 、alpine、archlinux  解决 `which` command no found
 
 ```bash
