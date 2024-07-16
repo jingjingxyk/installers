@@ -586,9 +586,9 @@ check_python_exits() {
     if [ "${PYTON3_MAJOR}" == "3" ]; then
       mkdir -p /tmp/python3/bin/
       # shellcheck disable=SC2046
-      ln -s "$(realpath $(which python))" /tmp/python3/bin/python3
+      ln -sf "$(realpath $(which python))" /tmp/python3/bin/python3
       # shellcheck disable=SC2046
-      ln -s "$(realpath $(which python-config))" /tmp/python3/bin/python3-config
+      ln -sf "$(realpath $(which python-config))" /tmp/python3/bin/python3-config
       export PATH=/tmp/python3/bin/:$PATH
     fi
   fi
