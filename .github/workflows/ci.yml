@@ -4,7 +4,7 @@ on: [ push, pull_request ]
 
 jobs:
   ubuntu-native-build:
-    if: 0
+    if: 1
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -58,7 +58,7 @@ jobs:
   macos:
     runs-on: ${{  matrix.macos_version }}
     timeout-minutes: 15
-    if: 0
+    if: 1
     strategy:
       matrix:
         macos_version:
