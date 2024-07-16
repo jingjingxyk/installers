@@ -580,30 +580,32 @@ install_system_python3() {
 
 check_python_exits() {
   # shellcheck disable=SC2155
-  if test -x "$(which python)" -a -x "$(which python-config)"; then
-    # reference https://semver.org/
-    local PYTON3_MAJOR="$(python -V | awk '{ print $2 }' | awk -F '.' '{ print $1 }')"
-    if [ "${PYTON3_MAJOR}" == "3" ]; then
-      mkdir -p /tmp/python3/bin/
-      ln -s "$(which python)" /tmp/python3/bin/python3
-      ln -s "$(which python-config)" /tmp/python3/bin/python3-config
-      export PATH=/tmp/python3/bin/:$PATH
-    fi
-  fi
-  # shellcheck disable=SC2155
   local PYTHON3="$(which python3)"
   PYTHON3_CONFIG="$(which python3-config)"
-
   if test -x "${PYTHON3}" -a -x "${PYTHON3_CONFIG}"; then
     PYTHON3_DIR=$(python3-config --prefix)
     PYTHON3_VERSION="$(python3 -V | awk '{ print $2 }')"
     FORCE_INSTALL_PYTHON3=1
+    # 检测 python3 版本
+    # reference https://semver.org/
+    # shellcheck disable=SC2155
+    local PYTON3_MAJOR="$(python3 -V | awk '{ print $2 }' | awk -F '.' '{ print $1 }')"
+    # shellcheck disable=SC2155
+    local PYTON3_MINOR="$(python3 -V | awk '{ print $2 }' | awk -F '.' '{ print $2 }')"
+    if [ $(("${PYTON3_MAJOR}")) -ge 3 ]; then
+      if [ $(("${PYTON3_MAJOR}")) -eq 3 ] && [ $(("${PYTON3_MINOR}")) -lt 10 ]; then
+        echo "phpy no support   python3 ${PYTHON3_VERSION} version ! "
+        exit 0
+      fi
+    fi
+
     return 0
   else
     if test ${FORCE_INSTALL_PYTHON3} -eq 3; then
       FORCE_INSTALL_PYTHON3=2
       install_system_python3
       check_python_exits
+      test $? -eq 0 && return 0
     fi
     echo 'no found python3 python3-config in $PATH '
     echo 'please install python3 or link python3 python3-config '
