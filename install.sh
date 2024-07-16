@@ -592,6 +592,7 @@ check_python_exits() {
       FORCE_INSTALL_PYTHON3=2
       install_system_python3
       check_python_exits
+      test $? -eq 0 || return 0
     fi
     echo 'no found python3 python3-config in $PATH '
     echo 'please install python3 or link python3 python3-config '
