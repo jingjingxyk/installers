@@ -574,8 +574,8 @@ EOF
 }
 
 install_system_python3() {
-  test -f /tmp/build/phpy/init.sh && bash init.sh --install-python3 1
-  test -f /tmp/build/phpy/init.sh || curl -fSL ${INIT_SCRIPT_SRC} | bash -s -- --install-python3 1
+  test -f ./init.sh && bash ./init.sh --install-python3 1
+  test -f ./init.sh || curl -fSL ${INIT_SCRIPT_SRC} | bash -s -- --install-python3 1
 }
 
 check_python_exits() {
