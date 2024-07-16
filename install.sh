@@ -63,7 +63,7 @@ while [ $# -gt 0 ]; do
     ENABLE_TEST=1
     ;;
   --install-php)
-    if [ "$2" == "1" ]; then
+    if [ "$2" = "1" ]; then
       FORCE_INSTALL_PHP=3
     fi
     ;;
@@ -74,7 +74,7 @@ while [ $# -gt 0 ]; do
     X_PHPY_VERSION="$2"
     ;;
   --install-python3)
-    if [ "$2" == "1" ]; then
+    if [ "$2" = "1" ]; then
       FORCE_INSTALL_PYTHON3=3
     fi
     ;;
@@ -328,11 +328,11 @@ install_php_ext_swoole_dependent_ext() {
 
     docker-php-source delete
   else
-    if [ "$OS" == 'Linux' ]; then
+    if [ "$OS" = 'Linux' ]; then
       # arch 系统下 php 的 socket 扩展 需要源码编译启用
       # shellcheck disable=SC2155
       local OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
-      if [ "${OS_RELEASE}" == 'arch' ]; then
+      if [ "${OS_RELEASE}" = 'arch' ]; then
         mkdir -p /tmp/build
         # shellcheck disable=SC2155
         local PHP_TMP_VERSION="$(php-config --version)"
@@ -439,7 +439,7 @@ install_php_ext_swoole() {
 
   # shellcheck disable=SC2155
   local PHP_ENABLE_ZTS=$(php -r "echo PHP_ZTS;")
-  if [ "${PHP_ENABLE_ZTS}" == '1' ]; then
+  if [ "${PHP_ENABLE_ZTS}" = '1' ]; then
     SWOOLE_THREAD_OPTION="--enable-swoole-thread "
   fi
 
