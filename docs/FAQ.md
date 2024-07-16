@@ -46,5 +46,21 @@ php --ri swoole
 
 ```
 
+## 可能遇到的的问题
 
+### $PATH 环境变量 未检测到php phpize php-config
 
+通过临时修改 $PATH 环境变量,例子：
+` export PATH=your-php-install-dir/bin/:$PATH`
+
+### rhel 系 、alpine、archlinux  解决 `which` command no found
+
+```bash
+
+curl -fsSL  https://github.com/swoole/installers/blob/main/init.sh?raw=true | bash
+
+# mirror
+
+curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/init.sh  | bash
+
+```
