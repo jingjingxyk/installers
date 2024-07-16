@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 __DIR__=$(
+  # shellcheck disable=SC2164
   cd "$(dirname "$0")"
   pwd
 )
@@ -15,21 +16,31 @@ if [ "$OS" = 'Linux' ]; then
 fi
 
 CPU_LOGICAL_PROCESSORS=4
+INIT_SCRIPT_SRC='https://github.com/swoole/installers/blob/main/init.sh?raw=true'
 MIRROR='' # swoole 源码镜像源
 ENABLE_TEST=0
-VERSION_LATEST=0                                 # 保持源码最新，每次执行都需要下载源码
+VERSION_LATEST=0                                      # 保持源码最新，每次执行都需要下载源码
 SWOOLE_SRC='https://github.com/swoole/swoole-src.git' # swoole 源码地址
-X_SWOOLE_VERSION=''                              # 指定 swoole 版本
-SWOOLE_VERSION='master'                          # 默认 swoole 版本
-SWOOLE_DEBUG=0                                   # 启用 swoole debug 编译参数
-INSTALL_PHP=0                                    # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
-FORCE_INSTALL_PHP=0                              # 0 未设置、3 要求安装PHP 、 4 执行安装 =》 安装以后状态 1 成功安装PHP , 2 未成功安装PHP
+X_SWOOLE_VERSION=''                                   # 指定 swoole 版本
+SWOOLE_VERSION='master'                               # 默认 swoole 版本
+SWOOLE_DEBUG=0                                        # 启用 swoole debug 编译参数
+INSTALL_PHP=0                                         # 0 未知，待检测 、1 系统已安装PHP、2 系统未安装PHP
+FORCE_INSTALL_PHP=0                                   # 0 未设置、3 要求安装PHP 、 4 执行安装 =》 安装以后状态 1 成功安装PHP , 2 未成功安装PHP
 
 PHP_SRC='https://github.com/php/php-src.git' # php 源码地址
 PHP=''                                       # php     位置
 PHPIZE=''                                    # phpize  位置
 PHP_CONFIG=''                                # php-config 位置
 PHP_INI_SCAN_DIR=''                          # php 扫描配置目录
+
+INSTALL_PHPY=0                                # 0 安装 phpy
+PHPY_SRC='https://github.com/swoole/phpy.git' # phpy 源码地址
+X_PHPY_VERSION=''                             # 指定phpy版本
+PHPY_VERSION='main'                           # phpy默认版本
+PYTHON3_VERSION=''                            # python3 版本
+PYTHON3_DIR=''                                # python3 位置
+PYTHON3_CONFIG=''                             # python3-config 位置
+FORCE_INSTALL_PYTHON3=0                       # 0 未设置、3 要求安装PHP
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -56,6 +67,17 @@ while [ $# -gt 0 ]; do
       FORCE_INSTALL_PHP=3
     fi
     ;;
+  --install-phpy)
+    INSTALL_PHPY=1
+    ;;
+  --phpy-version)
+    X_PHPY_VERSION="$2"
+    ;;
+  --install-python3)
+    if [ "$2" == "1" ]; then
+      FORCE_INSTALL_PYTHON3=3
+    fi
+    ;;
   --*)
     echo "no found  option $1"
     ;;
@@ -67,9 +89,20 @@ case "$MIRROR" in
 china)
   SWOOLE_SRC="https://gitee.com/swoole/swoole.git"
   PHP_SRC="https://gitee.com/mirrors/php-src.git"
+  PHPY_SRC='https://gitee.com/swoole/phpy.git'
+  INIT_SCRIPT_SRC='https://gitee.com/jingjingxyk/swoole-install/raw/main/init.sh'
   ;;
 *) ;;
+esac
 
+case "$OS" in
+Darwin)
+  CPU_LOGICAL_PROCESSORS=$(sysctl -n hw.ncpu)
+  ;;
+Linux)
+  CPU_LOGICAL_PROCESSORS=$(grep "processor" /proc/cpuinfo | sort -u | wc -l)
+  ;;
+*) ;;
 esac
 
 check_php() {
@@ -200,7 +233,7 @@ configure_environment() {
 
 }
 
-install_swoole_dependent_library() {
+install_php_ext_swoole_dependent_library() {
   case "$OS" in
   Darwin | darwin)
     export HOMEBREW_NO_ANALYTICS=1
@@ -267,7 +300,7 @@ install_swoole_dependent_library() {
   esac
 }
 
-install_swoole_dependent_ext() {
+install_php_ext_swoole_dependent_ext() {
   # swoole 依赖 openssl  、curl、 sockets、 pdo  扩展
   local EXTENSION_OPENSSL_EXISTS=0
   local EXTENSION_CURL_EXISTS=0
@@ -341,7 +374,7 @@ EOF
 
 }
 
-install_swoole() {
+install_php_ext_swoole() {
 
   local SWOOLE_OPTIONS=''
 
@@ -412,7 +445,6 @@ install_swoole() {
 
   case "$OS" in
   Darwin)
-    CPU_LOGICAL_PROCESSORS=$(sysctl -n hw.ncpu)
     case "$ARCH" in
     x86_64)
       export PKG_CONFIG_PATH=/usr/local/opt/libpq/lib/pkgconfig/:/usr/local/opt/unixodbc/lib/pkgconfig/
@@ -430,7 +462,6 @@ install_swoole() {
     esac
     ;;
   Linux)
-    CPU_LOGICAL_PROCESSORS=$(grep "processor" /proc/cpuinfo | sort -u | wc -l)
     OS_RELEASE="$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')"
     case "$OS_RELEASE" in
     'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
@@ -521,14 +552,14 @@ install_swoole() {
       SUDO='sudo'
     fi
 
-    local SWOOLE_INI_FILE=${PHP_INI_SCAN_DIR}/90-swoole.ini
+    local EXT_INI_FILE=${PHP_INI_SCAN_DIR}/60-swoole.ini
     # shellcheck disable=SC2046
     # 解决 php official 容器中 扩展加载顺序问题
     if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then
-      test -f ${SWOOLE_INI_FILE} && rm -f ${SWOOLE_INI_FILE}
-      SWOOLE_INI_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-swoole-90.ini
+      test -f ${EXT_INI_FILE} && rm -f ${EXT_INI_FILE}
+      EXT_INI_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-swoole-60.ini
     fi
-    ${SUDO} tee ${SWOOLE_INI_FILE} <<EOF
+    ${SUDO} tee ${EXT_INI_FILE} <<EOF
 extension=swoole.so
 swoole.use_shortname=On
 EOF
@@ -542,12 +573,136 @@ EOF
   php --ri swoole
 }
 
+install_system_python3() {
+  curl -fsSL ${INIT_SCRIPT_SRC} | bash -s -- --install-python3
+}
+
+check_python_exits() {
+  # shellcheck disable=SC2155
+  local PYTHON3="$(which python3)"
+  PYTHON3_CONFIG="$(which python3-config)"
+
+  if test -x "${PYTHON3}" -a -x "${PYTHON3_CONFIG}"; then
+    PYTHON3_DIR=$(python3-config --prefix)
+    PYTHON3_VERSION="$(python3 -V | awk '{ print $2 }')"
+    FORCE_INSTALL_PYTHON3=1
+    return 0
+  else
+    if test ${FORCE_INSTALL_PYTHON3} -eq 3; then
+      FORCE_INSTALL_PYTHON3=2
+      install_system_python3
+      check_python_exits
+    fi
+    echo 'no found python3 python3-configin $PATH '
+    echo 'please install PHP or link python3 python3-config '
+    exit 0
+
+  fi
+
+}
+
+install_php_ext_phpy() {
+
+  mkdir -p /tmp/build
+  # shellcheck disable=SC2164
+  cd /tmp/build/
+
+  # 指定 phpy 版本 和 已经存在的 phpy 版本不一致
+  if test -n "${X_PHPY_VERSION}" -a -d phpy/; then
+    if test -f phpy/x-phpy-version; then
+      if test "$(cat phpy/x-phpy-version)" != "${X_PHPY_VERSION}"; then
+        test -d phpy && rm -rf phpy
+      fi
+    else
+      test -d phpy && rm -rf phpy
+    fi
+  fi
+
+  # 保持源码最新
+  test $VERSION_LATEST -eq 1 && test -d phpy && rm -rf phpy
+  test -d phpy || git clone -b $PHPY_VERSION --single-branch --depth=1 $PHPY_SRC
+  if [ $? -ne 0 ]; then
+    echo $?
+    exit 3
+  fi
+  echo $PHPY_VERSION >phpy/x-phpy-version
+
+  # shellcheck disable=SC2164
+  cd /tmp/build/phpy
+  phpize
+
+  ./configure --help
+
+  ./configure \
+    --with-php-config="${PHP_CONFIG}" \
+    --with-python-dir="${PYTHON3_DIR}" \
+    --with-python-config="${PYTHON3_CONFIG}" \
+    --with-python-version="${PYTHON3_VERSION}"
+
+  if [ $? -ne 0 ]; then
+    echo $?
+    exit 3
+  fi
+
+  make -j ${CPU_LOGICAL_PROCESSORS}
+  if [ $? -ne 0 ]; then
+    echo $?
+    exit 3
+  fi
+
+  if test $ENABLE_TEST -eq 1; then
+    # shellcheck disable=SC2164
+    cd /tmp/build/phpy/tests/include/lib/
+    composer install
+    # shellcheck disable=SC2164
+    cd /tmp/build/phpy/
+    make test
+  fi
+
+  make install
+  if [ $? -ne 0 ]; then
+    echo $?
+    exit 3
+  fi
+
+  if [ -n "${PHP_INI_SCAN_DIR}" ] && [ -d "${PHP_INI_SCAN_DIR}" ]; then
+    local SUDO=''
+    if [ ! -w "${PHP_INI_SCAN_DIR}" ]; then
+      SUDO='sudo'
+    fi
+    local EXT_INI_FILE=${PHP_INI_SCAN_DIR}/61-phpy.ini
+    # shellcheck disable=SC2046
+    # 解决 php official 容器中 扩展加载顺序问题
+    if test -f /.dockerenv -a -x "$(which docker-php-source)" -a -x "$(which docker-php-ext-enable)"; then
+      test -f ${EXT_INI_FILE} && rm -f ${EXT_INI_FILE}
+      EXT_INI_FILE=${PHP_INI_SCAN_DIR}/docker-php-ext-phpy-61.ini
+    fi
+    ${SUDO} tee ${EXT_INI_FILE} <<EOF
+extension=phpy.so
+EOF
+
+  fi
+
+  php -v
+  php -m
+  php --ini
+  php --ini | grep ".ini files"
+  php --ri phpy
+}
+
 install() {
   configure_environment
   if test ${INSTALL_PHP} -eq 1; then
-    install_swoole_dependent_library
-    install_swoole_dependent_ext
-    install_swoole
+    install_php_ext_swoole_dependent_library
+    install_php_ext_swoole_dependent_ext
+    install_php_ext_swoole
+
+    if test ${INSTALL_PHPY} -eq 1; then
+      check_python_exits
+      if test -x "${PYTHON3_CONFIG}"; then
+        install_php_ext_phpy
+      fi
+    fi
   fi
 }
 
