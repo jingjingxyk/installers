@@ -585,8 +585,10 @@ check_python_exits() {
     local PYTON3_MAJOR="$(python -V | awk '{ print $2 }' | awk -F '.' '{ print $1 }')"
     if [ "${PYTON3_MAJOR}" == "3" ]; then
       mkdir -p /tmp/python3/bin/
-      ln -s "$(which python)" /tmp/python3/bin/python3
-      ln -s "$(which python-config)" /tmp/python3/bin/python3-config
+      # shellcheck disable=SC2046
+      ln -s "$(realpath $(which python))" /tmp/python3/bin/python3
+      # shellcheck disable=SC2046
+      ln -s "$(realpath $(which python-config))" /tmp/python3/bin/python3-config
       export PATH=/tmp/python3/bin/:$PATH
     fi
   fi
