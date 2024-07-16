@@ -53,8 +53,8 @@ init() {
       ;;
     'ubuntu')
       if [ "$GITHUB_ACTIONS" = "true" ] && [ -f /.dockerenv ]; then
-        sed -i.bak "s@security.ubuntu.com@azure.archive.ubuntu.com@g" /etc/apt/sources.list
         sed -i.bak "s@archive.ubuntu.com@azure.archive.ubuntu.com@g" /etc/apt/sources.list
+        sed -i.bak "s@security.ubuntu.com@azure.archive.ubuntu.com@g" /etc/apt/sources.list
       fi
       ;;
     'alpine')
