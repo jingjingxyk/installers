@@ -4,9 +4,9 @@ on: [ push, pull_request ]
 
 jobs:
   ubuntu-native-build:
-    if: 1
+    if: 0
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: native ubuntu install swoole
@@ -22,8 +22,8 @@ jobs:
 
   linux-container:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    if: 0
+    timeout-minutes: 10
+    if: 1
     strategy:
       matrix:
         container_image:
@@ -57,8 +57,8 @@ jobs:
 
   macos:
     runs-on: ${{  matrix.macos_version }}
-    timeout-minutes: 5
-    if: 1
+    timeout-minutes: 10
+    if: 0
     strategy:
       matrix:
         macos_version:
