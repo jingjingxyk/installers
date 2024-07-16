@@ -580,22 +580,8 @@ install_system_python3() {
 
 check_python_exits() {
   # shellcheck disable=SC2155
-  if test -x "$(which python)" -a -x "$(which python-config)"; then
-    # reference https://semver.org/
-    local PYTON3_MAJOR="$(python -V | awk '{ print $2 }' | awk -F '.' '{ print $1 }')"
-    if [ "${PYTON3_MAJOR}" == "3" ]; then
-      mkdir -p /tmp/python3/bin/
-      # shellcheck disable=SC2046
-      ln -sf "$(realpath $(which python))" /tmp/python3/bin/python3
-      # shellcheck disable=SC2046
-      ln -sf "$(realpath $(which python-config))" /tmp/python3/bin/python3-config
-      export PATH=/tmp/python3/bin/:$PATH
-    fi
-  fi
-  # shellcheck disable=SC2155
   local PYTHON3="$(which python3)"
   PYTHON3_CONFIG="$(which python3-config)"
-
   if test -x "${PYTHON3}" -a -x "${PYTHON3_CONFIG}"; then
     PYTHON3_DIR=$(python3-config --prefix)
     PYTHON3_VERSION="$(python3 -V | awk '{ print $2 }')"
