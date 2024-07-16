@@ -53,7 +53,7 @@ jobs:
           run: |
             set -x
             sh init.sh
-            bash install.sh --install-php 1 --install-phpy --install-python3 1
+            bash install.sh --install-php 1 --install-phpy --install-python3 1 --debug
 
   macos:
     runs-on: ${{  matrix.macos_version }}
@@ -70,7 +70,7 @@ jobs:
       - name: install swoole
         run: |
           set -x
-          bash install.sh --install-php 1 --install-phpy --install-python3 1
+          bash install.sh --install-php 1 --install-phpy --install-python3 1 --debug
 
       - name: show info
         run: |
