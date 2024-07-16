@@ -589,9 +589,9 @@ check_python_exits() {
     # 检测 python3 版本
     # reference https://semver.org/
     # shellcheck disable=SC2155
-    local PYTON3_MAJOR="$(python -V | awk '{ print $2 }' | awk -F '.' '{ print $1 }')"
+    local PYTON3_MAJOR="$(python3 -V | awk '{ print $2 }' | awk -F '.' '{ print $1 }')"
     # shellcheck disable=SC2155
-    local PYTON3_MINOR="$(python -V | awk '{ print $2 }' | awk -F '.' '{ print $2 }')"
+    local PYTON3_MINOR="$(python3 -V | awk '{ print $2 }' | awk -F '.' '{ print $2 }')"
     if [ $(("${PYTON3_MAJOR}")) -ge 3 ]; then
       if [ $(("${PYTON3_MAJOR}")) -eq 3 ] && [ $(("${PYTON3_MINOR}")) -lt 10 ]; then
         echo "phpy no support   python3 ${PYTHON3_VERSION} version ! "
