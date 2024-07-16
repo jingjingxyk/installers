@@ -31,7 +31,7 @@ curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/install.sh | b
 
 ```
 
-## 可能出现的问题
+## 可能遇到的的问题
 
 ### $PATH 环境变量 未检测到php phpize php-config
 
