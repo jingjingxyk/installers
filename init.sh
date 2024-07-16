@@ -51,12 +51,8 @@ init() {
       yum update -y
       yum install -y which
       ;;
-    'ubuntu')
-      if [ "$GITHUB_ACTIONS" = "true" ] && [ -f /.dockerenv ]; then
-        sed -i.bak "s@archive.ubuntu.com@azure.archive.ubuntu.com@g" /etc/apt/sources.list
-        sed -i.bak "s@security.ubuntu.com@azure.archive.ubuntu.com@g" /etc/apt/sources.list
-      fi
-      ;;
+    'ubuntu') ;;
+
     'alpine')
       apk update
       apk add bash
@@ -70,7 +66,6 @@ init() {
 }
 
 init
-
 
 while [ $# -gt 0 ]; do
   case "$1" in
