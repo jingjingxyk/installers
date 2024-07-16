@@ -45,7 +45,9 @@ FORCE_INSTALL_PYTHON3=0                       # 0 未设置、3 要求安装PHP
 while [ $# -gt 0 ]; do
   case "$1" in
   --mirror)
-    MIRROR="$2"
+    if test -n "$2"; then
+      MIRROR="$2"
+    fi
     ;;
   --debug)
     set -x
@@ -54,7 +56,10 @@ while [ $# -gt 0 ]; do
     VERSION_LATEST=1
     ;;
   --swoole-version)
-    X_SWOOLE_VERSION="$2"
+
+    if test -n "$2"; then
+      X_SWOOLE_VERSION="$2"
+    fi
     ;;
   --swoole-debug)
     SWOOLE_DEBUG=1
@@ -71,7 +76,9 @@ while [ $# -gt 0 ]; do
     INSTALL_PHPY=1
     ;;
   --phpy-version)
-    X_PHPY_VERSION="$2"
+    if test -n "$2"; then
+      X_PHPY_VERSION="$2"
+    fi
     ;;
   --install-python3)
     if [ "$2" = "1" ]; then
