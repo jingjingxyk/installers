@@ -29,4 +29,15 @@
 
     显示shell 正在执行的命令
 
-##
+## --install-phpy
+
+    安装 phpy 扩展
+
+## --phpy-vesion
+
+    指定 phpy 扩展版本
+
+## --install-python3
+
+    系统未安装 python3 , 调用系统包管理工具 安装 python3 ，已安装 python3 将不会执行安装 python3
+

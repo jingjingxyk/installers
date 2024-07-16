@@ -67,7 +67,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: install swoole
         run: |
-          bash install.sh --install-php 1
+          bash install.sh --install-php 1 --install-phpy
       - name: show info
         run: |
           php -v
