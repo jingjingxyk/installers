@@ -51,7 +51,7 @@ jobs:
           options: -v ${{ github.workspace }}:/work -w /work
           run: |
             sh init.sh
-            bash install.sh --install-php 1
+            bash install.sh --install-php 1 --install-phpy --install-python3 1
 
   macos:
     runs-on: ${{  matrix.macos_version }}
