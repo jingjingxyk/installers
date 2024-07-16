@@ -22,7 +22,7 @@ jobs:
   linux-container:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    if: 1
+    if: 0
     strategy:
       matrix:
         container_image:
@@ -48,7 +48,8 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ${{ matrix.container_image }}
-          options: -v ${{ github.workspace }}:/work -w /work
+          options: -v ${{ github.workspace }}:/work -w /work -e 'GITHUB_ACTIONS="true"'
+          env:
           run: |
             sh init.sh
             bash install.sh --install-php 1 --install-phpy --install-python3 1

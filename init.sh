@@ -7,7 +7,7 @@ if [ "${OS}" == 'Linux' ]; then
     yum install -y which
     ;;
   'ubuntu')
-    if [ "$GITHUB_ACTIONS" = "true" ]; then
+    if [ "$GITHUB_ACTIONS" = "true" ] && [ -f /.dockerenv ]; then
       sed -i.bak "s@security.ubuntu.com@azure.archive.ubuntu.com@g" /etc/apt/sources.list
       sed -i.bak "s@archive.ubuntu.com@azure.archive.ubuntu.com@g" /etc/apt/sources.list
     fi
@@ -51,7 +51,7 @@ install_python3() {
       apk add python3 py3-pip
       ;;
     'arch')
-      pacman -Sy --noconfirm python3 python3-pip
+      pacman -Sy --noconfirm python python-pip
 
       ;;
 

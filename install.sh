@@ -215,7 +215,7 @@ configure_environment() {
       else
         echo 'no found php phpize php-config in $PATH'
         echo 'please reinstall PHP or link php phpize php-config'
-        exit 0
+        exit 3
       fi
     else
       # shellcheck disable=SC2016
@@ -226,7 +226,7 @@ configure_environment() {
       test -x "${PHP_CONFIG}" || echo 'no found php-config IN $PATH '
       if test ${FORCE_INSTALL_PHP} -ne 3; then
         # 未发现 php ，也未要求安装 PHP
-        exit 0
+        exit 3
       fi
     fi
   fi
@@ -368,7 +368,7 @@ EOF
     test ${EXTENSION_PDO_EXISTS} -eq 0 && MESSAGES="${MESSAGES} pdo  " && ((SUM++))
     if test $SUM -gt 0; then
       echo $MESSAGES
-      exit 0
+      exit 3
     fi
   fi
 
@@ -574,7 +574,7 @@ EOF
 }
 
 install_system_python3() {
-  curl -fsSL ${INIT_SCRIPT_SRC} | bash -s -- --install-python3
+  curl -fsSL ${INIT_SCRIPT_SRC} | bash -s -- --install-python3 1
 }
 
 check_python_exits() {
@@ -595,7 +595,7 @@ check_python_exits() {
     fi
     echo 'no found python3 python3-configin $PATH '
     echo 'please install PHP or link python3 python3-config '
-    exit 0
+    exit 3
 
   fi
 
