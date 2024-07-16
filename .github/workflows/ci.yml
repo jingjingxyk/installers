@@ -50,7 +50,6 @@ jobs:
         with:
           image: ${{ matrix.container_image }}
           options: -v ${{ github.workspace }}:/work -w /work -e GITHUB_ACTIONS="true"
-          env:
           run: |
             sh init.sh
             bash install.sh --install-php 1 --install-phpy --install-python3 1
