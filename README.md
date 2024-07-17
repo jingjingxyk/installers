@@ -2,6 +2,8 @@
 
 一行命令给PHP安装上 swoole 扩展
 
+## [配置选项文档](docs/options.md)
+
 ## 用法
 
 From https://www.swoole.com:
@@ -33,10 +35,10 @@ curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/install.sh | b
 
 ## 可能遇到的的问题
 
-### $PATH 环境变量中 未检测到php phpize php-config
+### $PATH 环境变量中 未检测到 php phpize php-config
 
 通过临时修改 $PATH 环境变量,例子：
-` export PATH=your-php-install-dir/bin/:$PATH`
+` export PATH=your-php-install-dir/bin/:$PATH `
 
 ### alpine 环境运行本脚本需要bash
 
