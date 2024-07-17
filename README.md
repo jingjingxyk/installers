@@ -52,21 +52,21 @@ curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/install.sh | b
 
 ## 支持的操作系统
 
-| 操作系统                                                         | 支持情况 |
-|--------------------------------------------------------------|------|
-| [debian](https://www.debian.org/)                            | ✅    |
-| [ubuntu](https://ubuntu.com/)                                | ✅    |
-| [rockylinux](https://rockylinux.org/)                        | ✅    |
-| [almalinux](https://almalinux.org/)                          | ✅    |
-| [Alibaba cloud liunx](https://www.aliyun.com/product/alinux) | ✅    |
-| [anolis](https://openanolis.cn/anolisos)                     | ✅    |
-| [fedora ](https://fedoraproject.org/)                        | ✅    |
-| [alpine](https://www.alpinelinux.org/)                       | ✅    |
-| [kali](https://www.kali.org/)                                | ✅    |
-| [macos](https://www.apple.com/)                              | ✅    |
-| wsl                                                          |      |
-| FreeBSD 13                                                   |      |
-| [OpenEuler](https://www.openeuler.org/)                      | ✅    |
-| Huawei Cloud EulerOS                                         | ✅    |
-| [archlinux](https://archlinux.org/)                          | ✅    |
-| [more helper](docs/os-helper.md)                             | ✅    |
+| 操作系统                                                         | 支持情况    | OS版本约束 |
+|--------------------------------------------------------------|---------|--------|
+| [debian](https://www.debian.org/)                            | ✅       |        |
+| [ubuntu](https://ubuntu.com/)                                | ✅       |        |
+| [rockylinux](https://rockylinux.org/)                        | ✅       |        |
+| [almalinux](https://almalinux.org/)                          | ✅       |        |
+| [Alibaba cloud liunx](https://www.aliyun.com/product/alinux) | ✅       |        |
+| [anolis](https://openanolis.cn/anolisos)                     | ✅       |        |
+| [fedora ](https://fedoraproject.org/)                        | ✅       |        |
+| [alpine](https://www.alpinelinux.org/)                       | ✅       |        |
+| [kali](https://www.kali.org/)                                | ✅       |        |
+| [macos](https://www.apple.com/)                              | ✅       |        |
+| wsl                                                          | no test |        |
+| FreeBSD 13                                                   | no test |        |
+| [OpenEuler](https://www.openeuler.org/)                      | ✅       |        |
+| Huawei Cloud EulerOS                                         | ✅       |        |
+| [archlinux](https://archlinux.org/)                          | ✅       |        |
+| [more helper](docs/os-helper.md)                             | -       | -      |
