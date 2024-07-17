@@ -53,14 +53,12 @@ php --ri swoole
 通过临时修改 $PATH 环境变量,例子：
 ` export PATH=your-php-install-dir/bin/:$PATH`
 
-### rhel 系 、alpine、archlinux  解决 `which` command no found
+### alpine 环境运行本脚本需要bash
+
+> 第一次用 sh 执行脚本
+> 第二次用 bash 执行脚本
 
 ```bash
-
-curl -fsSL  https://github.com/swoole/installers/blob/main/init.sh?raw=true | bash
-
-# mirror
-
-curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/init.sh  | bash
-
+  sh install.sh
+  bash install.sh
 ```
