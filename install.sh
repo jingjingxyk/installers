@@ -40,7 +40,6 @@ if [ "$OS" = 'Linux' ]; then
 fi
 
 CPU_LOGICAL_PROCESSORS=4
-INIT_SCRIPT_SRC='https://github.com/swoole/installers/blob/main/init.sh?raw=true'
 MIRROR='' # swoole 源码镜像源
 ENABLE_TEST=0
 VERSION_LATEST=0                                      # 保持源码最新，每次执行都需要下载源码
@@ -121,7 +120,6 @@ china)
   SWOOLE_SRC="https://gitee.com/swoole/swoole.git"
   PHP_SRC="https://gitee.com/mirrors/php-src.git"
   PHPY_SRC='https://gitee.com/swoole/phpy.git'
-  INIT_SCRIPT_SRC='https://gitee.com/jingjingxyk/swoole-install/raw/main/init.sh'
   ;;
 *) ;;
 esac
