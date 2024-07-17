@@ -1,8 +1,8 @@
 # Swoole Installer
 
-一行命令给PHP安装上 swoole 扩展
+一行命令给 PHP 安装上 swoole 、phpy 扩展
 
-## [配置选项文档](docs/options.md)
+## [文档](docs/options.md)
 
 ## 用法
 
@@ -69,3 +69,4 @@ curl -fsSL  https://gitee.com/jingjingxyk/swoole-install/raw/main/install.sh | b
 | [OpenEuler](https://www.openeuler.org/)                      | ✅    |
 | Huawei Cloud EulerOS                                         | ✅    |
 | [archlinux](https://archlinux.org/)                          | ✅    |
+| [more helper](docs/os-helper.md)                             | ✅    |

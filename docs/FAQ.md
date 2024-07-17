@@ -21,31 +21,6 @@ php --ini | grep  ".ini files"
 
 ```
 
-## 新增 swoole 扩展配置
-
-```bash
-
-# 配置 90-swoole.ini
-PHP_INI_SCAN_DIR=$(php --ini | grep  "Scan for additional .ini files in:" | awk -F 'in:' '{ print $2 }' | xargs)
-
-if [ -n "${PHP_INI_SCAN_DIR}" ] && [ -d "${PHP_INI_SCAN_DIR}" ]; then
-  local SUDO=''
-  if [ ! -w "${PHP_INI_SCAN_DIR}" ] ; then
-    SUDO='sudo'
-  fi
-  ${SUDO} tee  ${PHP_INI_SCAN_DIR}/90-swoole.ini << EOF
-extension=swoole.so
-swoole.use_shortname=Off
-EOF
-
-fi
-
-php --ini
-
-php --ri swoole
-
-```
-
 ## 可能遇到的的问题
 
 ### $PATH 环境变量 未检测到php phpize php-config
@@ -59,6 +34,8 @@ php --ri swoole
 > 第二次用 bash 执行脚本
 
 ```bash
+
   sh install.sh
   bash install.sh
+
 ```
