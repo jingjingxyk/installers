@@ -6,12 +6,36 @@ __DIR__=$(
   pwd
 )
 
+init() {
+  OS=$(uname -s)
+  if [ "${OS}" = 'Linux' ]; then
+    OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
+    case "$OS_RELEASE" in
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
+      yum update -y
+      yum install -y which
+      ;;
+    'ubuntu') ;;
+
+    'alpine')
+      apk update
+      apk add bash
+      ;;
+    'arch')
+      pacman -Syyu --noconfirm
+      pacman -Sy --noconfirm which
+      ;;
+    esac
+  fi
+}
+
 OS=$(uname -s)
 ARCH=$(uname -m)
 if [ "$OS" = 'Linux' ]; then
+  init
   if [ ! "$BASH_VERSION" ]; then
     echo "Please  use bash to run this script ($0) " 1>&2
-    exit 1
+    exit 0
   fi
 fi
 
@@ -209,7 +233,7 @@ install_system_php() {
 
 }
 
-configure_environment() {
+check_php_and_install_php() {
   check_php
   # 系统未安装PHP
   if test ${INSTALL_PHP} -eq 2; then
@@ -581,11 +605,50 @@ EOF
 }
 
 install_system_python3() {
-  test -f ./init.sh && bash ./init.sh --install-python3 1
-  test -f ./init.sh || curl -fSL ${INIT_SCRIPT_SRC} | bash -s -- --install-python3 1
+  case "$OS" in
+  Darwin | darwin)
+    export HOMEBREW_NO_ANALYTICS=1
+    export HOMEBREW_NO_AUTO_UPDATE=1
+    export HOMEBREW_INSTALL_FROM_API=1
+    brew install python3
+    ;;
+  Linux)
+    OS_RELEASE=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr -d '\n' | tr -d '\"')
+    case "$OS_RELEASE" in
+    'rocky' | 'almalinux' | 'alinux' | 'anolis' | 'fedora' | 'openEuler' | 'hce') # |  'amzn' | 'ol' | 'rhel' | 'centos'  # 未测试
+      yum install -y update
+      yum install -y python3 python3-devel
+      ;;
+    'debian' | 'ubuntu' | 'kali')
+      export DEBIAN_FRONTEND=noninteractive
+      export TZ="Etc/UTC"
+      ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ >/etc/timezone
+      apt update -y
+      apt install -y python3 python3-dev
+
+      ;;
+    'alpine')
+      apk update
+      apk add python3 python3-dev
+      ;;
+    'arch')
+      pacman -Sy --noconfirm python3
+
+      ;;
+
+    esac
+    ;;
+  *)
+    case "$(uname -r)" in
+    *microsoft* | *Microsoft*)
+      # WSL
+      ;;
+    esac
+    ;;
+  esac
 }
 
-check_python_exits() {
+check_python3_and_install_python3() {
   # shellcheck disable=SC2155
   local PYTHON3="$(which python3)"
   PYTHON3_CONFIG="$(which python3-config)"
@@ -601,7 +664,7 @@ check_python_exits() {
     local PYTON3_MINOR="$(python3 -V | awk '{ print $2 }' | awk -F '.' '{ print $2 }')"
     if [ $((${PYTON3_MAJOR})) -ge 3 ]; then
       if [ $((${PYTON3_MAJOR})) -eq 3 ] && [ $((${PYTON3_MINOR})) -lt 10 ]; then
-        echo "phpy no support   python3 ${PYTHON3_VERSION} version ! "
+        echo "phpy no support   python3 ${PYTHON3_VERSION}  ! "
         exit 0
       fi
     fi
@@ -611,7 +674,7 @@ check_python_exits() {
     if test ${FORCE_INSTALL_PYTHON3} -eq 3; then
       FORCE_INSTALL_PYTHON3=2
       install_system_python3
-      check_python_exits
+      check_python3_and_install_python3
       test $? -eq 0 && return 0
     fi
     echo 'no found python3 python3-config in $PATH '
@@ -712,14 +775,14 @@ EOF
 }
 
 install() {
-  configure_environment
+  check_php_and_install_php
   if test ${INSTALL_PHP} -eq 1; then
     install_php_ext_swoole_dependent_library
     install_php_ext_swoole_dependent_ext
     install_php_ext_swoole
 
     if test ${INSTALL_PHPY} -eq 1; then
-      check_python_exits
+      check_python3_and_install_python3
       if test -x "${PYTHON3_CONFIG}"; then
         install_php_ext_phpy
       fi

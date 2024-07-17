@@ -51,7 +51,7 @@ jobs:
           options: -v ${{ github.workspace }}:/work -w /work -e GITHUB_ACTIONS=true
           run: |
             set -x
-            sh init.sh
+            sh install.sh
             bash install.sh --install-php 1 --install-phpy --install-python3 1 --debug
 
   macos:
